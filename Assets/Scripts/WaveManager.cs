@@ -10,7 +10,7 @@ public class WaveManager : MonoBehaviour
     public float timeBetweenEnemies = 1.5f;
     public float timeBetweenWaves = 5f;
 
-    private int currentWave = 0;
+    public int currentWave = 0;
 
     void Start()
     {
