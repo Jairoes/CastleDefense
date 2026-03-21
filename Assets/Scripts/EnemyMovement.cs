@@ -5,6 +5,7 @@ public class EnemyMovement : MonoBehaviour
     [Header("Configuración")]
     public WaypointPath waypointPath;
     public float moveSpeed = 5f;
+    public float damage = 10f;
 
     private int currentWaypointIndex = 0;
 
@@ -18,14 +19,12 @@ public class EnemyMovement : MonoBehaviour
 
         transform.position += direction.normalized * moveSpeed * Time.deltaTime;
 
-        // Rotar hacia el waypoint
         if (direction != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(direction);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
         }
 
-        // Verificar si llegó al waypoint
         Vector3 posEnemy = new Vector3(transform.position.x, 0f, transform.position.z);
         Vector3 posWaypoint = new Vector3(targetWaypoint.position.x, 0f, targetWaypoint.position.z);
         float distancia = Vector3.Distance(posEnemy, posWaypoint);
@@ -34,12 +33,21 @@ public class EnemyMovement : MonoBehaviour
         {
             currentWaypointIndex++;
 
-            // Si llegó al final (castillo)
             if (currentWaypointIndex >= waypointPath.GetWaypointCount())
             {
-                Debug.Log("¡Enemigo llegó al castillo!");
-                Destroy(gameObject);
+                AttackCastle();
             }
         }
+    }
+
+    void AttackCastle()
+    {
+        // Busca el castillo y le hace daño
+        CastleHealth castle = FindObjectOfType<CastleHealth>();
+        if (castle != null)
+        {
+            castle.TakeDamage(damage);
+        }
+        Destroy(gameObject);
     }
 }
