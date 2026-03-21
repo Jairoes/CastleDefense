@@ -43,7 +43,7 @@ public class EnemyMovement : MonoBehaviour
     void AttackCastle()
     {
         // Busca el castillo y le hace daño
-        CastleHealth castle = FindObjectOfType<CastleHealth>();
+        CastleHealth castle = FindFirstObjectByType<CastleHealth>();
         if (castle != null)
         {
             castle.TakeDamage(damage);
