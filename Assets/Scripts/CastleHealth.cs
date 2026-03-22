@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 public class CastleHealth : MonoBehaviour
 {
@@ -7,26 +6,36 @@ public class CastleHealth : MonoBehaviour
     public float maxHealth = 100f;
     public float currentHealth;
 
+    [Header("UI")]
+    public RectTransform healthBarFill;
+
     void Start()
     {
         currentHealth = maxHealth;
+        UpdateUI();
     }
 
     public void TakeDamage(float damage)
     {
         currentHealth -= damage;
-        Debug.Log("Castillo recibio daño. Vida restante: " + currentHealth);
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+        UpdateUI();
 
         if (currentHealth <= 0)
-        {
-            currentHealth = 0;
             GameOver();
+    }
+
+    void UpdateUI()
+    {
+        if (healthBarFill != null)
+        {
+            float fillAmount = currentHealth / maxHealth;
+            healthBarFill.localScale = new Vector3(fillAmount, 1, 1);
         }
     }
 
     void GameOver()
     {
-        Debug.Log("¡Game Over! El castillo fue destruido.");
-        // Aquí después pausaremos el juego y mostraremos la pantalla de derrota
+        Debug.Log("Game Over! El castillo fue destruido.");
     }
 }
