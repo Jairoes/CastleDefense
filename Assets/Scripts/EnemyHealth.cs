@@ -2,9 +2,12 @@ using UnityEngine;
 
 public class EnemyHealth : MonoBehaviour
 {
-    [Header("Vida del Enemigo")]
+    [Header("Vida")]
     public float maxHealth = 50f;
     public float currentHealth;
+
+    [Header("Recompensa")]
+    public int crystalReward = 8;
 
     void Start()
     {
@@ -14,16 +17,16 @@ public class EnemyHealth : MonoBehaviour
     public void TakeDamage(float damage)
     {
         currentHealth -= damage;
-
         if (currentHealth <= 0)
-        {
             Die();
-        }
     }
 
     void Die()
     {
-        Debug.Log("Enemigo eliminado!");
+        if (GameManager.Instance != null)
+            GameManager.Instance.AddCrystals(crystalReward);
+
+        Debug.Log("Enemigo eliminado! +" + crystalReward + " cristales");
         Destroy(gameObject);
     }
 }
