@@ -21,6 +21,10 @@ public class TowerPlacer : MonoBehaviour
     private int selectedCost = 0;
     private bool isPlacing = false;
 
+    // Colores del preview
+    private Color validColor   = new Color(0f, 1f, 0f, 0.5f);
+    private Color invalidColor = new Color(1f, 0f, 0f, 0.5f);
+
     void Awake()
     {
         Instance = this;
@@ -30,15 +34,24 @@ public class TowerPlacer : MonoBehaviour
     {
         if (!isPlacing) return;
 
-        // Mover preview con el mouse
         Vector3 mousePos = GetMouseWorldPosition();
+
         if (towerPreview != null)
+        {
             towerPreview.transform.position = mousePos;
 
-        // Colocar torre al hacer clic
+            // Cambiar color según zona válida o no
+            bool valid = IsValidPlacement(mousePos);
+            SetPreviewColor(towerPreview, valid ? validColor : invalidColor);
+        }
+
+        // Colocar torre al hacer clic izquierdo
         if (Input.GetMouseButtonDown(0))
         {
-            PlaceTower(mousePos);
+            if (IsValidPlacement(mousePos))
+                PlaceTower(mousePos);
+            else
+                Debug.Log("Zona no válida para colocar torre!");
         }
 
         // Cancelar con clic derecho
@@ -46,6 +59,21 @@ public class TowerPlacer : MonoBehaviour
         {
             CancelPlacement();
         }
+    }
+
+    bool IsValidPlacement(Vector3 position)
+    {
+        // Verificar que no haya objetos de Path u Obstacle debajo
+        Collider[] colliders = Physics.OverlapSphere(position, 1f);
+        foreach (Collider col in colliders)
+        {
+            if (col.gameObject.layer == LayerMask.NameToLayer("Path") ||
+                col.gameObject.layer == LayerMask.NameToLayer("Obstacle"))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void SelectTower(int towerIndex)
@@ -68,17 +96,14 @@ public class TowerPlacer : MonoBehaviour
             return;
         }
 
-        // Cancelar selección anterior
         CancelPlacement();
 
         selectedTowerPrefab = prefab;
         selectedCost = cost;
         isPlacing = true;
 
-        // Crear preview
         towerPreview = Instantiate(prefab, Vector3.zero, Quaternion.identity);
-        // Hacer el preview semitransparente
-        SetPreviewTransparency(towerPreview, 0.5f);
+        SetPreviewColor(towerPreview, validColor);
     }
 
     void PlaceTower(Vector3 position)
@@ -110,14 +135,12 @@ public class TowerPlacer : MonoBehaviour
         return Vector3.zero;
     }
 
-    void SetPreviewTransparency(GameObject obj, float alpha)
+    void SetPreviewColor(GameObject obj, Color color)
     {
         Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
         foreach (Renderer r in renderers)
         {
-            Color c = r.material.color;
-            c.a = alpha;
-            r.material.color = c;
+            r.material.color = color;
         }
     }
 }

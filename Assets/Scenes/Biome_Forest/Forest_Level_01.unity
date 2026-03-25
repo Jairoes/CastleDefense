@@ -162,7 +162,7 @@ GameObject:
   - component: {fileID: 80206008}
   - component: {fileID: 80206007}
   - component: {fileID: 80206006}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: 'Corner_01 '
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -351,7 +351,7 @@ GameObject:
   - component: {fileID: 288612826}
   - component: {fileID: 288612825}
   - component: {fileID: 288612824}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Castle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -478,7 +478,7 @@ GameObject:
   - component: {fileID: 398478132}
   - component: {fileID: 398478131}
   - component: {fileID: 398478130}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Path_04
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1156,7 +1156,7 @@ GameObject:
   - component: {fileID: 714442003}
   - component: {fileID: 714442002}
   - component: {fileID: 714442001}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Path_01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1455,7 +1455,7 @@ GameObject:
   - component: {fileID: 1011656626}
   - component: {fileID: 1011656625}
   - component: {fileID: 1011656624}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Corner_03
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1568,7 +1568,7 @@ GameObject:
   - component: {fileID: 1054603997}
   - component: {fileID: 1054603996}
   - component: {fileID: 1054603995}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Path_05
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1934,7 +1934,7 @@ GameObject:
   - component: {fileID: 1119274011}
   - component: {fileID: 1119274010}
   - component: {fileID: 1119274009}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Plane
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2099,7 +2099,7 @@ GameObject:
   - component: {fileID: 1274651551}
   - component: {fileID: 1274651550}
   - component: {fileID: 1274651549}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Path_02
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2752,7 +2752,7 @@ GameObject:
   - component: {fileID: 1563151240}
   - component: {fileID: 1563151239}
   - component: {fileID: 1563151238}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Path_03
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3048,7 +3048,7 @@ GameObject:
   - component: {fileID: 1694124041}
   - component: {fileID: 1694124040}
   - component: {fileID: 1694124039}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Corner_04
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3298,7 +3298,7 @@ GameObject:
   - component: {fileID: 1751530671}
   - component: {fileID: 1751530670}
   - component: {fileID: 1751530669}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Corner_02
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3625,7 +3625,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1883037454}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: PathVisual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
