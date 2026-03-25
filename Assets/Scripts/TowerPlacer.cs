@@ -103,6 +103,7 @@ public class TowerPlacer : MonoBehaviour
         isPlacing = true;
 
         towerPreview = Instantiate(prefab, Vector3.zero, Quaternion.identity);
+        DisableAttackScripts(towerPreview);
         SetPreviewColor(towerPreview, validColor);
     }
 
@@ -111,7 +112,8 @@ public class TowerPlacer : MonoBehaviour
         if (GameManager.Instance.SpendCrystals(selectedCost))
         {
             Destroy(towerPreview);
-            Instantiate(selectedTowerPrefab, position, Quaternion.identity);
+            GameObject newTower = Instantiate(selectedTowerPrefab, position, Quaternion.identity);
+            newTower.layer = LayerMask.NameToLayer("Obstacle");
             isPlacing = false;
             towerPreview = null;
         }
@@ -141,6 +143,16 @@ public class TowerPlacer : MonoBehaviour
         foreach (Renderer r in renderers)
         {
             r.material.color = color;
+        }
+    }
+
+    void DisableAttackScripts(GameObject preview)
+    {
+        MonoBehaviour[] scripts = preview.GetComponentsInChildren<MonoBehaviour>();
+        foreach (MonoBehaviour script in scripts)
+        {
+            if (script is not TowerPlacer)
+                script.enabled = false;
         }
     }
 }

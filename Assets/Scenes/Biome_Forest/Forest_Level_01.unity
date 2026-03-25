@@ -2065,7 +2065,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TowerPlacer
   archerTowerPrefab: {fileID: 98639638326436759, guid: 3af80af1ae7e66c4f9935f08f6acbb42, type: 3}
-  mageTowerPrefab: {fileID: 0}
+  mageTowerPrefab: {fileID: 8138389999560163534, guid: cab6b536ed07be349836700a52dea7cf, type: 3}
   iceTowerPrefab: {fileID: 0}
   cannonTowerPrefab: {fileID: 0}
   archerCost: 50
@@ -4246,63 +4246,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!1001 &251858784803772142
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 98639638326436759, guid: 3af80af1ae7e66c4f9935f08f6acbb42, type: 3}
-      propertyPath: m_Name
-      value: Tower_Archer
-      objectReference: {fileID: 0}
-    - target: {fileID: 1077006626833301956, guid: 3af80af1ae7e66c4f9935f08f6acbb42, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1077006626833301956, guid: 3af80af1ae7e66c4f9935f08f6acbb42, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 1077006626833301956, guid: 3af80af1ae7e66c4f9935f08f6acbb42, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 1077006626833301956, guid: 3af80af1ae7e66c4f9935f08f6acbb42, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1077006626833301956, guid: 3af80af1ae7e66c4f9935f08f6acbb42, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1077006626833301956, guid: 3af80af1ae7e66c4f9935f08f6acbb42, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1077006626833301956, guid: 3af80af1ae7e66c4f9935f08f6acbb42, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1077006626833301956, guid: 3af80af1ae7e66c4f9935f08f6acbb42, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1077006626833301956, guid: 3af80af1ae7e66c4f9935f08f6acbb42, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1077006626833301956, guid: 3af80af1ae7e66c4f9935f08f6acbb42, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 3af80af1ae7e66c4f9935f08f6acbb42, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -4313,7 +4256,6 @@ SceneRoots:
   - {fileID: 1360581460}
   - {fileID: 288612828}
   - {fileID: 1549216375}
-  - {fileID: 251858784803772142}
   - {fileID: 1057373386}
   - {fileID: 900220233}
   - {fileID: 1883037454}

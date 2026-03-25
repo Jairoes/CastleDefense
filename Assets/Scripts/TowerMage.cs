@@ -1,11 +1,16 @@
 using UnityEngine;
 
-public class TowerArcher : MonoBehaviour
+public class TowerMage : MonoBehaviour
 {
     [Header("Configuración")]
-    public float range = 6f;
-    public float damage = 20f;
-    public float fireRate = 1f;
+    public float range = 7f;
+    public float damage = 40f;
+    public float splashDamage = 10f;
+    public float splashRadius = 3f;
+    public float fireRate = 0.67f; // 1 disparo cada 1.5 segundos
+
+    [Header("Proyectil")]
+    public GameObject projectilePrefab;
 
     private float fireCountdown = 0f;
     private GameObject target;
@@ -60,18 +65,26 @@ public class TowerArcher : MonoBehaviour
     void Shoot()
     {
         if (target == null) return;
-
-        EnemyHealth enemyHealth = target.GetComponent<EnemyHealth>();
-        if (enemyHealth != null)
+        if (projectilePrefab == null)
         {
-            enemyHealth.TakeDamage(damage);
-            Debug.Log("Torre disparo al enemigo!");
+            Debug.LogWarning("TowerMage no tiene proyectil asignado!");
+            return;
+        }
+
+        // Crear la bola mágica en la posición de la torre
+        GameObject proj = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
+
+        // Decirle al proyectil a quién perseguir y cuánto daño hacer
+        MageProjectile mp = proj.GetComponent<MageProjectile>();
+        if (mp != null)
+        {
+            mp.SetTarget(target, damage, splashDamage, splashRadius);
         }
     }
 
     void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.cyan;
+        Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(transform.position, range);
     }
 }
