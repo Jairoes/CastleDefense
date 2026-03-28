@@ -2068,10 +2068,12 @@ MonoBehaviour:
   mageTowerPrefab: {fileID: 8138389999560163534, guid: cab6b536ed07be349836700a52dea7cf, type: 3}
   iceTowerPrefab: {fileID: 3754047949646172462, guid: 0530b16b5f5d8304eae09cdadef73b10, type: 3}
   cannonTowerPrefab: {fileID: 8138389999560163534, guid: 4a7f5439a622ce04d80fc4d164cfba90, type: 3}
+  fireTowerPrefab: {fileID: 8138389999560163534, guid: 32aa4a7c20117f54490e791e37b36841, type: 3}
   archerCost: 50
   mageCost: 70
   iceCost: 70
   cannonCost: 90
+  fireCost: 80
 --- !u!4 &1272197303
 Transform:
   m_ObjectHideFlags: 0
@@ -2257,7 +2259,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: null
+  m_text: Fire
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

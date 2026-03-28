@@ -1,14 +1,16 @@
 using UnityEngine;
 
-public class TowerArcher : MonoBehaviour
+public class TowerFire : MonoBehaviour
 {
     [Header("Configuración")]
-    public float range    = 6f;
-    public float damage   = 20f;
-    public float fireRate = 1f;
+    public float range      = 7f;
+    public float damage     = 25f;
+    public float burnDamage = 10f;  // tick extra de quemadura
+    public float burnDelay  = 1f;   // segundos después del impacto
+    public float fireRate   = 0.5f; // 1 disparo cada 2 segundos
 
     [Header("Proyectil")]
-    public GameObject projectilePrefab; // ← AGREGAR
+    public GameObject projectilePrefab;
 
     private float fireCountdown = 0f;
     private GameObject target;
@@ -19,6 +21,7 @@ public class TowerArcher : MonoBehaviour
 
         if (target == null) return;
 
+        // Rotar hacia el enemigo
         Vector3 direction = target.transform.position - transform.position;
         direction.y = 0f;
         if (direction != Vector3.zero)
@@ -27,6 +30,7 @@ public class TowerArcher : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, 10f * Time.deltaTime);
         }
 
+        // Countdown primero, luego verificar
         fireCountdown -= Time.deltaTime;
 
         if (fireCountdown <= 0f)
@@ -44,10 +48,10 @@ public class TowerArcher : MonoBehaviour
 
         foreach (GameObject enemy in enemies)
         {
-            float distance = Vector3.Distance(transform.position, enemy.transform.position);
-            if (distance < shortestDistance)
+            float dist = Vector3.Distance(transform.position, enemy.transform.position);
+            if (dist < shortestDistance)
             {
-                shortestDistance = distance;
+                shortestDistance = dist;
                 nearestEnemy = enemy;
             }
         }
@@ -61,22 +65,22 @@ public class TowerArcher : MonoBehaviour
 
         if (projectilePrefab == null)
         {
-            Debug.LogWarning("TowerArcher: no tiene proyectil asignado!");
+            Debug.LogWarning("TowerFire: no tiene proyectil asignado!");
             return;
         }
 
         GameObject proj = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
-        ArrowProjectile ap = proj.GetComponent<ArrowProjectile>();
+        FireProjectile fp = proj.GetComponent<FireProjectile>();
 
-        if (ap != null)
-            ap.SetTarget(target, damage);
+        if (fp != null)
+            fp.SetTarget(target, damage, burnDamage, burnDelay);
         else
-            Debug.LogWarning("ArrowProjectile component no encontrado!");
+            Debug.LogWarning("FireProjectile component no encontrado!");
     }
 
     void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.cyan;
+        Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, range);
     }
 }

@@ -9,12 +9,14 @@ public class TowerPlacer : MonoBehaviour
     public GameObject mageTowerPrefab;
     public GameObject iceTowerPrefab;
     public GameObject cannonTowerPrefab;
+    public GameObject fireTowerPrefab;
 
     [Header("Costos")]
     public int archerCost = 50;
     public int mageCost = 70;
     public int iceCost = 70;
     public int cannonCost = 90;
+    public int fireCost = 80;
 
     private GameObject selectedTowerPrefab;
     private GameObject towerPreview;
@@ -87,6 +89,7 @@ public class TowerPlacer : MonoBehaviour
             case 1: prefab = mageTowerPrefab;   cost = mageCost;   break;
             case 2: prefab = iceTowerPrefab;    cost = iceCost;    break;
             case 3: prefab = cannonTowerPrefab; cost = cannonCost; break;
+            case 4: prefab = fireTowerPrefab; cost = fireCost; break;
         }
 
         if (prefab == null) return;
