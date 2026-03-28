@@ -1,45 +1,79 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+
+[System.Serializable]
+public class Wave
+{
+    public string waveName;
+    public List<EnemySpawn> enemies;
+    public float timeBetweenEnemies = 1.5f;
+}
+
+[System.Serializable]
+public class EnemySpawn
+{
+    public GameObject enemyPrefab;
+    public int count;
+}
 
 public class WaveManager : MonoBehaviour
 {
-    [Header("Configuración de Oleadas")]
-    public GameObject enemyPrefab;
+    [Header("Configuración")]
     public WaypointPath waypointPath;
-    public int enemiesPerWave = 5;
-    public float timeBetweenEnemies = 1.5f;
     public float timeBetweenWaves = 5f;
 
+    [Header("Oleadas")]
+    public List<Wave> waves;
+
     public int currentWave = 0;
+    private bool isSpawning = false;
 
     void Start()
     {
-        StartCoroutine(StartWave());
+        StartCoroutine(StartNextWave());
     }
 
-    IEnumerator StartWave()
+    IEnumerator StartNextWave()
     {
-        currentWave++;
-        Debug.Log("Oleada " + currentWave + " comenzando!");
-
-        for (int i = 0; i < enemiesPerWave; i++)
+        if (currentWave >= waves.Count)
         {
-            SpawnEnemy();
-            yield return new WaitForSeconds(timeBetweenEnemies);
+            Debug.Log("¡Todas las oleadas completadas!");
+            yield break;
         }
 
+        Wave wave = waves[currentWave];
+        currentWave++;
+
+        Debug.Log("Oleada " + currentWave + " comenzando!");
+
+        // Actualizar UI
+        // if (GameUI.Instance != null)
+        //     GameUI.Instance.UpdateWaveText(currentWave);
+
+        // Spawnear todos los grupos de enemigos de la oleada
+        foreach (EnemySpawn spawn in wave.enemies)
+        {
+            for (int i = 0; i < spawn.count; i++)
+            {
+                SpawnEnemy(spawn.enemyPrefab);
+                yield return new WaitForSeconds(wave.timeBetweenEnemies);
+            }
+        }
+
+        // Esperar antes de la siguiente oleada
         yield return new WaitForSeconds(timeBetweenWaves);
-        StartCoroutine(StartWave());
+        StartCoroutine(StartNextWave());
     }
 
-    void SpawnEnemy()
+    void SpawnEnemy(GameObject prefab)
     {
-        if (enemyPrefab == null || waypointPath == null) return;
+        if (prefab == null || waypointPath == null) return;
 
         Vector3 spawnPos = waypointPath.GetWaypoint(0).position;
         spawnPos.y = 0.5f;
 
-        GameObject enemy = Instantiate(enemyPrefab, spawnPos, Quaternion.identity);
+        GameObject enemy = Instantiate(prefab, spawnPos, Quaternion.identity);
         enemy.GetComponent<EnemyMovement>().waypointPath = waypointPath;
     }
 }

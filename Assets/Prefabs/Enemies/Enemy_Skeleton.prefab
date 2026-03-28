@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 7091575185699003229}
   - component: {fileID: 1168096002659725655}
   m_Layer: 0
-  m_Name: Enemy_Goblin
+  m_Name: Enemy_Skeleton
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -69,7 +69,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4b354e37148a76d459f642691a932b93, type: 2}
+  - {fileID: 2100000, guid: e605812a89821e14db58d7c8107a7286, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -127,8 +127,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMovement
   waypointPath: {fileID: 0}
-  moveSpeed: 3.5
-  damage: 10
+  moveSpeed: 5
+  damage: 8
 --- !u!114 &1168096002659725655
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -141,6 +141,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf9072cff38f60146a63cacb67cec57b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
-  maxHealth: 40
+  maxHealth: 35
   currentHealth: 0
-  crystalReward: 8
+  crystalReward: 6

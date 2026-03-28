@@ -2721,11 +2721,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c376a834776584d42a9018efbb242c50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WaveManager
-  enemyPrefab: {fileID: 8032132610251692224, guid: 1cb8412cfcec7c642ae8780703dd342b, type: 3}
   waypointPath: {fileID: 1360581459}
-  enemiesPerWave: 5
-  timeBetweenEnemies: 1.5
   timeBetweenWaves: 5
+  waves:
+  - waveName: Oleada 1
+    enemies:
+    - enemyPrefab: {fileID: 8032132610251692224, guid: 1cb8412cfcec7c642ae8780703dd342b, type: 3}
+      count: 5
+    timeBetweenEnemies: 1.5
+  - waveName: Oleada 2
+    enemies:
+    - enemyPrefab: {fileID: 8032132610251692224, guid: 1cb8412cfcec7c642ae8780703dd342b, type: 3}
+      count: 4
+    - enemyPrefab: {fileID: 8032132610251692224, guid: 1c79d922e514bea49b28ef634adc51bf, type: 3}
+      count: 6
+    timeBetweenEnemies: 1.2
+  - waveName: Oleada 3
+    enemies:
+    - enemyPrefab: {fileID: 8032132610251692224, guid: 1cb8412cfcec7c642ae8780703dd342b, type: 3}
+      count: 6
+    - enemyPrefab: {fileID: 8032132610251692224, guid: 1c79d922e514bea49b28ef634adc51bf, type: 3}
+      count: 10
+    timeBetweenEnemies: 1
   currentWave: 0
 --- !u!4 &1549216375
 Transform:
