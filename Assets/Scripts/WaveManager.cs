@@ -39,6 +39,11 @@ public class WaveManager : MonoBehaviour
         if (currentWave >= waves.Count)
         {
             Debug.Log("¡Todas las oleadas completadas!");
+
+            yield return new WaitUntil(() => 
+                GameObject.FindGameObjectsWithTag("Enemy").Length == 0);
+            
+            GameManager.Instance.TriggerVictory();
             yield break;
         }
 

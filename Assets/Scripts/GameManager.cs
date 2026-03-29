@@ -9,6 +9,10 @@ public class GameManager : MonoBehaviour
     public int crystals = 100;
     public TextMeshProUGUI crystalsText;
 
+    [Header("Estado del juego")]
+    public bool gameOver = false;
+    public bool gameWon  = false;
+
     void Awake()
     {
         if (Instance == null)
@@ -24,6 +28,8 @@ public class GameManager : MonoBehaviour
 
     public bool SpendCrystals(int amount)
     {
+        if (gameOver || gameWon) return false;
+
         if (crystals >= amount)
         {
             crystals -= amount;
@@ -39,6 +45,29 @@ public class GameManager : MonoBehaviour
         crystals += amount;
         UpdateCrystalsUI();
         Debug.Log("+" + amount + " cristales. Total: " + crystals);
+    }
+
+    public void TriggerGameOver()
+    {
+        if (gameOver || gameWon) return;
+        gameOver = true;
+        Time.timeScale = 0f; // pausa el juego
+        GameUI.Instance.ShowGameOver();
+    }
+
+    public void TriggerVictory()
+    {
+        if (gameOver || gameWon) return;
+        gameWon = true;
+        Time.timeScale = 0f; // pausa el juego
+        GameUI.Instance.ShowVictory();
+    }
+
+    public void RestartGame()
+    {
+        Time.timeScale = 1f;
+        UnityEngine.SceneManagement.SceneManager.LoadScene(
+            UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
     }
 
     void UpdateCrystalsUI()

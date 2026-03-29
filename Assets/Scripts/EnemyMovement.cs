@@ -5,21 +5,32 @@ public class EnemyMovement : MonoBehaviour
     [Header("Configuración")]
     public WaypointPath waypointPath;
     public float moveSpeed = 5f;
-    public float damage = 10f;
+    public float damage    = 10f;
+
+    [Header("Ataque al castillo")]
+    public float attackRate     = 1f;   // ataques por segundo
+    public float attackRange    = 2f;   // distancia para empezar a atacar
 
     private int currentWaypointIndex = 0;
+    private bool isAttackingCastle   = false;
+    private float attackCountdown    = 0f;
+    private CastleHealth castle;
 
+    // --- SISTEMA DE SLOW ---
     private float baseSpeed;
     private float slowTimer = 0f;
-    private bool isSlowed = false;
+    private bool isSlowed   = false;
 
     void Start()
     {
-        baseSpeed = moveSpeed; // guardamos la velocidad original
+        baseSpeed = moveSpeed;
+        castle    = FindFirstObjectByType<CastleHealth>();
     }
 
     void Update()
     {
+        if (GameManager.Instance != null && GameManager.Instance.gameOver) return;
+
         // Tick del slow
         if (isSlowed)
         {
@@ -28,11 +39,17 @@ public class EnemyMovement : MonoBehaviour
                 RemoveSlow();
         }
 
+        if (isAttackingCastle)
+        {
+            AttackCastle();
+            return;
+        }
+
         if (waypointPath == null) return;
 
         Transform targetWaypoint = waypointPath.GetWaypoint(currentWaypointIndex);
-        Vector3 direction = targetWaypoint.position - transform.position;
-        direction.y = 0f;
+        Vector3 direction        = targetWaypoint.position - transform.position;
+        direction.y              = 0f;
 
         transform.position += direction.normalized * moveSpeed * Time.deltaTime;
 
@@ -44,23 +61,46 @@ public class EnemyMovement : MonoBehaviour
 
         Vector3 posEnemy    = new Vector3(transform.position.x, 0f, transform.position.z);
         Vector3 posWaypoint = new Vector3(targetWaypoint.position.x, 0f, targetWaypoint.position.z);
-        float distancia = Vector3.Distance(posEnemy, posWaypoint);
+        float distancia     = Vector3.Distance(posEnemy, posWaypoint);
 
         if (distancia < 0.2f)
         {
             currentWaypointIndex++;
             if (currentWaypointIndex >= waypointPath.GetWaypointCount())
-                AttackCastle();
+            {
+                // Llegó al castillo — se queda a atacar
+                isAttackingCastle = true;
+                attackCountdown   = 0f;
+            }
         }
     }
 
-    // Llamado por IceProjectile al impactar
+    void AttackCastle()
+    {
+        if (castle == null) return;
+
+        // Rotar hacia el castillo
+        Vector3 dir = castle.transform.position - transform.position;
+        dir.y = 0f;
+        if (dir != Vector3.zero)
+            transform.rotation = Quaternion.Slerp(transform.rotation,
+                Quaternion.LookRotation(dir), 10f * Time.deltaTime);
+
+        // Atacar cada X segundos
+        attackCountdown -= Time.deltaTime;
+        if (attackCountdown <= 0f)
+        {
+            castle.TakeDamage(damage);
+            attackCountdown = 1f / attackRate;
+            Debug.Log(gameObject.name + " atacó el castillo!");
+        }
+    }
+
     public void ApplySlow(float slowPercent, float duration)
     {
-        // Si ya está slowed, solo refrescamos el timer
-        moveSpeed  = baseSpeed * (1f - slowPercent);
-        slowTimer  = duration;
-        isSlowed   = true;
+        moveSpeed = baseSpeed * (1f - slowPercent);
+        slowTimer = duration;
+        isSlowed  = true;
     }
 
     void RemoveSlow()
@@ -70,11 +110,9 @@ public class EnemyMovement : MonoBehaviour
         slowTimer = 0f;
     }
 
-    void AttackCastle()
+    void OnDrawGizmosSelected()
     {
-        CastleHealth castle = FindFirstObjectByType<CastleHealth>();
-        if (castle != null)
-            castle.TakeDamage(damage);
-        Destroy(gameObject);
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, attackRange);
     }
 }
