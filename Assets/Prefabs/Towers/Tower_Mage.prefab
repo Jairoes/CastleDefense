@@ -125,7 +125,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d1373c3c9272c3542aafb8d0e2479694, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TowerMage
-  range: 7
+  range: 5
   damage: 40
   splashDamage: 10
   splashRadius: 3

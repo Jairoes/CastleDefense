@@ -125,7 +125,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff4b50defd93ca0439760eb47bd57193, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TowerArcher
-  range: 8
+  range: 7
   damage: 20
   fireRate: 1
   projectilePrefab: {fileID: 4635577132650536326, guid: ecbff5fb5c40c6b4caefa9a1c959eb31, type: 3}

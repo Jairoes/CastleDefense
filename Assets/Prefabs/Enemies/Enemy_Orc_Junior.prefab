@@ -129,6 +129,8 @@ MonoBehaviour:
   waypointPath: {fileID: 0}
   moveSpeed: 2.5
   damage: 15
+  attackRate: 1
+  attackRange: 2
 --- !u!114 &1168096002659725655
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -143,4 +145,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
   maxHealth: 80
   currentHealth: 0
-  crystalReward: 15
+  crystalReward: 12

@@ -125,7 +125,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 272605c26e6276f42a83e867cf33526b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TowerCannon
-  range: 8
+  range: 6
   damage: 55
   fireRate: 0.33
   projectilePrefab: {fileID: 8942166940043631190, guid: a8a7f8a19e36d0846bba9ac51c5f7aca, type: 3}

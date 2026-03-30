@@ -125,9 +125,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b1e058220b6bb684d93e6f03b43925e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TowerIce
-  range: 6
+  range: 5
   damage: 15
   slowPercent: 0.5
   slowDuration: 2
+  slowRadius: 2.5
   fireRate: 0.4
   projectilePrefab: {fileID: 6380426067746485895, guid: 7042982412c43b543bbd961197665f60, type: 3}
