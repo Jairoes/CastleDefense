@@ -8,6 +8,9 @@ public class FireProjectile : MonoBehaviour
     private float burnDelay;
     private float speed = 9f;
 
+    public float maxDistance = 7f;
+    private Vector3 spawnPosition;
+
     public void SetTarget(GameObject _target, float _damage, float _burnDamage, float _burnDelay)
     {
         target     = _target;
@@ -16,9 +19,20 @@ public class FireProjectile : MonoBehaviour
         burnDelay  = _burnDelay;
     }
 
+    void Start()
+    {
+        spawnPosition = transform.position;
+    }
+
     void Update()
     {
         if (target == null)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        if (Vector3.Distance(spawnPosition, transform.position) >= maxDistance)
         {
             Destroy(gameObject);
             return;
@@ -44,8 +58,8 @@ public class FireProjectile : MonoBehaviour
         EnemyHealth health = target.GetComponent<EnemyHealth>();
         if (health != null)
         {
-            health.TakeDamage(damage);       // daño de impacto inmediato
-            health.ApplyBurn(burnDamage, burnDelay); // tick de quemadura después
+            health.TakeDamage(damage);
+            health.ApplyBurn(burnDamage, burnDelay);
         }
 
         Destroy(gameObject);

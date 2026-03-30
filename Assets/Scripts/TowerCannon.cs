@@ -3,9 +3,9 @@ using UnityEngine;
 public class TowerCannon : MonoBehaviour
 {
     [Header("Configuración")]
-    public float range    = 8f;
+    public float range    = 6f;
     public float damage   = 55f;
-    public float fireRate = 0.33f; // 1 disparo cada 3 segundos
+    public float fireRate = 0.33f;
 
     [Header("Proyectil")]
     public GameObject projectilePrefab;

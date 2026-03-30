@@ -125,4 +125,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5837449a9848fed4aa787b861aaa2a4b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::IceProjectile
-  projectileSpeed: 12
+  maxDistance: 7

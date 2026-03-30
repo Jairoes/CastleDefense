@@ -3,7 +3,7 @@ using UnityEngine;
 public class TowerMage : MonoBehaviour
 {
     [Header("Configuración")]
-    public float range = 7f;
+    public float range = 5f;
     public float damage = 40f;
     public float splashDamage = 10f;
     public float splashRadius = 3f;

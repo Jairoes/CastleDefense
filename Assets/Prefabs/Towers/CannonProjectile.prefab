@@ -103,3 +103,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 145663d215e6dec429e53b0c3dfb9c07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CannonProjectile
+  maxDistance: 8

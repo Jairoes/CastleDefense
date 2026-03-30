@@ -3,7 +3,7 @@ using UnityEngine;
 public class TowerArcher : MonoBehaviour
 {
     [Header("Configuración")]
-    public float range    = 6f;
+    public float range    = 7f;
     public float damage   = 20f;
     public float fireRate = 1f;
 

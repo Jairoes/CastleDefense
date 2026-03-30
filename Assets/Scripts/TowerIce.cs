@@ -3,12 +3,12 @@ using UnityEngine;
 public class TowerIce : MonoBehaviour
 {
     [Header("Configuración")]
-    public float range      = 6f;
+    public float range      = 5f;
     public float damage     = 15f;
     public float slowPercent = 0.5f;  // 50% más lento
     public float slowDuration = 2f;   // durante 2 segundos
     public float slowRadius = 2.5f;
-    public float fireRate   = 0.4f;   // disparos por segundo
+    public float fireRate   = 0.6f;   // disparos por segundo
 
     [Header("Proyectil")]
     public GameObject projectilePrefab;

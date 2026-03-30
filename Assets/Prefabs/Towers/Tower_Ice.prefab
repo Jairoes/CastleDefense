@@ -130,5 +130,5 @@ MonoBehaviour:
   slowPercent: 0.5
   slowDuration: 2
   slowRadius: 2.5
-  fireRate: 0.4
+  fireRate: 0.6
   projectilePrefab: {fileID: 6380426067746485895, guid: 7042982412c43b543bbd961197665f60, type: 3}

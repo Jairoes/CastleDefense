@@ -3,7 +3,7 @@ using UnityEngine;
 public class TowerFire : MonoBehaviour
 {
     [Header("Configuración")]
-    public float range      = 7f;
+    public float range      = 6f;
     public float damage     = 25f;
     public float burnDamage = 10f;  // tick extra de quemadura
     public float burnDelay  = 1f;   // segundos después del impacto

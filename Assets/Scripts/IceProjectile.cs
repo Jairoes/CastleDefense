@@ -9,7 +9,9 @@ public class IceProjectile : MonoBehaviour
     private float slowRadius;
     private float speed = 10f;
 
-    // Llamado por TowerIce al disparar
+    public float maxDistance = 7f;
+    private Vector3 spawnPosition;
+
     public void SetTarget(GameObject _target, float _damage, float _slowPercent, float _slowDuration, float _slowRadius)
     {
         target       = _target;
@@ -19,20 +21,28 @@ public class IceProjectile : MonoBehaviour
         slowRadius   = _slowRadius;
     }
 
+    void Start()
+    {
+        spawnPosition = transform.position;
+    }
+
     void Update()
     {
-        // Si el enemigo murió antes de llegar, destruir el proyectil
         if (target == null)
         {
             Destroy(gameObject);
             return;
         }
 
-        // Mover el proyectil hacia el enemigo
+        if (Vector3.Distance(spawnPosition, transform.position) >= maxDistance)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         Vector3 direction = target.transform.position - transform.position;
         float distanceThisFrame = speed * Time.deltaTime;
 
-        // Si llegó al enemigo — explotar con slow
         if (direction.magnitude <= distanceThisFrame)
         {
             Explode();
@@ -40,25 +50,25 @@ public class IceProjectile : MonoBehaviour
         }
 
         transform.Translate(direction.normalized * distanceThisFrame, Space.World);
+
+        if (direction != Vector3.zero)
+            transform.rotation = Quaternion.LookRotation(direction);
     }
 
     void Explode()
     {
-        // 1. Daño + slow al enemigo impactado directamente
-        EnemyHealth enemyHealth = target.GetComponent<EnemyHealth>();
-        if (enemyHealth != null)
-            enemyHealth.TakeDamage(damage);
+        EnemyHealth health = target.GetComponent<EnemyHealth>();
+        if (health != null)
+            health.TakeDamage(damage);
 
-        EnemyMovement enemyMovement = target.GetComponent<EnemyMovement>();
-        if (enemyMovement != null)
-            enemyMovement.ApplySlow(slowPercent, slowDuration);
+        EnemyMovement movement = target.GetComponent<EnemyMovement>();
+        if (movement != null)
+            movement.ApplySlow(slowPercent, slowDuration);
 
-        // 2. Slow a enemigos cercanos en el radio (sin daño extra)
         Collider[] colliders = Physics.OverlapSphere(transform.position, slowRadius);
         foreach (Collider col in colliders)
         {
-            if (col.gameObject == target) continue; // ya fue procesado arriba
-
+            if (col.gameObject == target) continue;
             if (col.CompareTag("Enemy"))
             {
                 EnemyMovement em = col.GetComponent<EnemyMovement>();
@@ -70,7 +80,6 @@ public class IceProjectile : MonoBehaviour
         Destroy(gameObject);
     }
 
-    // Muestra el radio de slow en el editor (círculo celeste)
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.cyan;

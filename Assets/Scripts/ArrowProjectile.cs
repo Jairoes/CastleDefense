@@ -4,7 +4,10 @@ public class ArrowProjectile : MonoBehaviour
 {
     private GameObject target;
     private float damage;
-    private float speed = 14f; // rápido, es una flecha
+    private float speed = 14f;
+
+    public float maxDistance = 9f;
+    private Vector3 spawnPosition;
 
     public void SetTarget(GameObject _target, float _damage)
     {
@@ -12,9 +15,20 @@ public class ArrowProjectile : MonoBehaviour
         damage = _damage;
     }
 
+    void Start()
+    {
+        spawnPosition = transform.position;
+    }
+
     void Update()
     {
         if (target == null)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        if (Vector3.Distance(spawnPosition, transform.position) >= maxDistance)
         {
             Destroy(gameObject);
             return;

@@ -125,3 +125,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc1644e8a5ca3544488a94b141099575, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MageProjectile
+  maxDistance: 7

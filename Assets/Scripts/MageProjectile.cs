@@ -8,28 +8,39 @@ public class MageProjectile : MonoBehaviour
     private float splashRadius;
     private float speed = 8f;
 
+    public float maxDistance = 7f;
+    private Vector3 spawnPosition;
+
     public void SetTarget(GameObject _target, float _damage, float _splashDamage, float _splashRadius)
     {
-        target = _target;
-        damage = _damage;
+        target       = _target;
+        damage       = _damage;
         splashDamage = _splashDamage;
         splashRadius = _splashRadius;
     }
 
+    void Start()
+    {
+        spawnPosition = transform.position;
+    }
+
     void Update()
     {
-        // Si el enemigo murió antes de llegar, destruir el proyectil
         if (target == null)
         {
             Destroy(gameObject);
             return;
         }
 
-        // Mover la bola hacia el enemigo
+        if (Vector3.Distance(spawnPosition, transform.position) >= maxDistance)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         Vector3 direction = target.transform.position - transform.position;
         float distanceThisFrame = speed * Time.deltaTime;
 
-        // Si llegó al enemigo — explotar
         if (direction.magnitude <= distanceThisFrame)
         {
             Explode();
@@ -41,17 +52,14 @@ public class MageProjectile : MonoBehaviour
 
     void Explode()
     {
-        // Daño directo al enemigo principal
         EnemyHealth enemyHealth = target.GetComponent<EnemyHealth>();
         if (enemyHealth != null)
             enemyHealth.TakeDamage(damage);
 
-        // Daño de salpicadura a enemigos cercanos
         Collider[] colliders = Physics.OverlapSphere(transform.position, splashRadius);
         foreach (Collider col in colliders)
         {
-            if (col.gameObject == target) continue; // ya recibió daño directo
-
+            if (col.gameObject == target) continue;
             if (col.CompareTag("Enemy"))
             {
                 EnemyHealth eh = col.GetComponent<EnemyHealth>();
