@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 2000419824785508187}
   - component: {fileID: 7091575185699003229}
   - component: {fileID: 1168096002659725655}
+  - component: {fileID: 5894021773426713946}
   m_Layer: 0
   m_Name: Enemy_Orc_Junior
   m_TagString: Enemy
@@ -146,3 +147,16 @@ MonoBehaviour:
   maxHealth: 80
   currentHealth: 0
   crystalReward: 12
+  healthBar: {fileID: 5894021773426713946}
+--- !u!114 &5894021773426713946
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8032132610251692224}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 589b22fa00b38d14fae8adce5599191a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyHealthBar

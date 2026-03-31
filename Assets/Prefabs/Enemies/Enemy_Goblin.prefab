@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 2000419824785508187}
   - component: {fileID: 7091575185699003229}
   - component: {fileID: 1168096002659725655}
+  - component: {fileID: -6991423209140564327}
   m_Layer: 0
   m_Name: Enemy_Goblin
   m_TagString: Enemy
@@ -146,3 +147,16 @@ MonoBehaviour:
   maxHealth: 40
   currentHealth: 0
   crystalReward: 6
+  healthBar: {fileID: -6991423209140564327}
+--- !u!114 &-6991423209140564327
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8032132610251692224}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 589b22fa00b38d14fae8adce5599191a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyHealthBar
