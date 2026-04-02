@@ -139,6 +139,9 @@ MonoBehaviour:
   maxHealth: 100
   currentHealth: 0
   healthBarFill: {fileID: 211608988}
+  shakeDuration: 0.5
+  shakeMagnitude: 0.3
+  destroyedCastlePrefab: {fileID: 2943556749737816007, guid: 9eb008e15b182c540be8e30b83ffe28a, type: 3}
 --- !u!1 &79282217
 GameObject:
   m_ObjectHideFlags: 0
@@ -393,6 +396,9 @@ MonoBehaviour:
   maxHealth: 100
   currentHealth: 0
   healthBarFill: {fileID: 211608988}
+  shakeDuration: 0.5
+  shakeMagnitude: 0.3
+  destroyedCastlePrefab: {fileID: 0}
 --- !u!65 &288612825
 BoxCollider:
   m_ObjectHideFlags: 0

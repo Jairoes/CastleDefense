@@ -51,8 +51,13 @@ public class GameManager : MonoBehaviour
     {
         if (gameOver || gameWon) return;
         gameOver = true;
-        Time.timeScale = 0f; // pausa el juego
         GameUI.Instance.ShowGameOver();
+        Invoke(nameof(PauseGame), 0.1f);
+    }
+
+    void PauseGame()
+    {
+        Time.timeScale = 0f; // pausa el juego
     }
 
     public void TriggerVictory()
