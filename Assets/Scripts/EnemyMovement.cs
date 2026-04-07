@@ -18,6 +18,7 @@ public class EnemyMovement : MonoBehaviour
     private bool isAttackingCastle    = false;
     private float attackCountdown     = 0f;
     private CastleHealth castle;
+    private Animator animator;
 
     // --- SISTEMA DE SLOW ---
     private float baseSpeed;
@@ -29,6 +30,9 @@ public class EnemyMovement : MonoBehaviour
         agent     = GetComponent<NavMeshAgent>();
         castle    = FindFirstObjectByType<CastleHealth>();
         baseSpeed = moveSpeed;
+        animator = GetComponentInChildren<Animator>();
+
+        Debug.Log("Animatoe encontrado: " + animator);
 
         // Configurar agente
         agent.speed       = moveSpeed;
@@ -54,6 +58,8 @@ public class EnemyMovement : MonoBehaviour
 
         if (isAttackingCastle)
         {
+            if (animator != null)
+                animator.SetBool("IsAttacking", true);
             AttackCastle();
             return;
         }
