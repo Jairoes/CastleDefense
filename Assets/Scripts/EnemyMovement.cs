@@ -30,17 +30,27 @@ public class EnemyMovement : MonoBehaviour
         agent     = GetComponent<NavMeshAgent>();
         castle    = FindFirstObjectByType<CastleHealth>();
         baseSpeed = moveSpeed;
-        animator = GetComponentInChildren<Animator>();
-
-        Debug.Log("Animatoe encontrado: " + animator);
-
-        // Configurar agente
-        agent.speed       = moveSpeed;
-        agent.stoppingDistance = 0.2f;
-        agent.height      = 1f;
-        agent.radius      = 0.15f; // separación entre enemigos
-
-        // Ir al primer waypoint
+        animator  = GetComponentInChildren<Animator>();
+    
+        // Rotar hacia el primer waypoint desde el inicio
+        if (waypointPath != null)
+        {
+            Transform firstWP = waypointPath.GetWaypoint(0);
+            Transform secondWP = waypointPath.GetWaypoint(1);
+            if (firstWP != null && secondWP != null)
+            {
+                Vector3 direction = secondWP.position - firstWP.position;
+                direction.y = 0f;
+                if (direction != Vector3.zero)
+                    transform.rotation = Quaternion.LookRotation(direction);
+            }
+        }
+    
+        agent.speed            = moveSpeed;
+        agent.stoppingDistance = 0.5f;
+        agent.height           = 1f;
+        agent.radius           = 0.15f;
+    
         GoToNextWaypoint();
     }
 
