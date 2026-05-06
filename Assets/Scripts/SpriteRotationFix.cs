@@ -2,16 +2,30 @@ using UnityEngine;
 
 public class SpriteRotationFix : MonoBehaviour
 {
-    private Transform cam;
+    private SpriteRenderer sr;
 
     void Start()
     {
-        cam = Camera.main.transform;
+        sr = GetComponent<SpriteRenderer>();
     }
 
     void LateUpdate()
     {
-        // Siempre mirar hacia la cámara ignorando la rotación del padre
-        transform.rotation = Quaternion.Euler(-40f, 0f, 0f); // mismo ángulo de la cámara
+        // Ignorar rotación del padre completamente
+        transform.rotation = Camera.main.transform.rotation;
+    }
+
+    public void SetDirection(Vector3 velocity)
+    {
+        if (sr == null) return;
+
+        Vector3 dir = velocity.normalized;
+        Debug.Log("dirX: " + dir.x);
+
+        // Flip según dirección X
+        if (dir.x > 0.1f)
+            sr.flipX = false; // va a la derecha
+        else if (dir.x < -0.1f)
+            sr.flipX = true;  // va a la izquierda
     }
 }
