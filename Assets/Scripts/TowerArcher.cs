@@ -12,6 +12,8 @@ public class TowerArcher : MonoBehaviour
     private GameObject target;
     private Animator archerAnimator;
     private SpriteRenderer archerSprite;
+    [Header("Punto de disparo")]
+    public Transform shootPoint; 
 
     void Start()
     {
@@ -97,7 +99,8 @@ public class TowerArcher : MonoBehaviour
             return;
         }
 
-        GameObject proj = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
+        Vector3 spawnPos = shootPoint != null ? shootPoint.position : transform.position;
+        GameObject proj = Instantiate(projectilePrefab, spawnPos, Quaternion.identity);
         ArrowProjectile ap = proj.GetComponent<ArrowProjectile>();
 
         if (ap != null)

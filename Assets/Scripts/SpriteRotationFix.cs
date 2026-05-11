@@ -20,7 +20,7 @@ public class SpriteRotationFix : MonoBehaviour
         if (sr == null) return;
 
         Vector3 dir = velocity.normalized;
-        Debug.Log("dirX: " + dir.x);
+        // Debug.Log("dirX: " + dir.x);
 
         // Flip según dirección X
         if (dir.x > 0.1f)

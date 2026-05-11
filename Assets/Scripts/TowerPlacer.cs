@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
+using System.Collections;
 
 public class TowerPlacer : MonoBehaviour
 {
@@ -25,8 +26,9 @@ public class TowerPlacer : MonoBehaviour
     private int selectedCost  = 0;
     private bool isPlacing    = false;
 
-    private Color validColor   = new Color(0f, 1f, 0f, 0.5f);
-    private Color invalidColor = new Color(1f, 0f, 0f, 0.5f);
+    private Color validColor   = new Color(1f, 1f, 1f, 0.5f);
+    private Color invalidColor = new Color(1f, 1f, 1f, 0.5f);
+    private bool isShaking = false;
 
     // Input Actions
     private InputAction tapAction;
@@ -50,6 +52,7 @@ public class TowerPlacer : MonoBehaviour
         if (!isPlacing) return;
 
         Vector3 worldPos = GetPointerWorldPosition();
+        worldPos.y = 2f;
 
         if (towerPreview != null)
         {
@@ -78,12 +81,21 @@ public class TowerPlacer : MonoBehaviour
         if (IsValidPlacement(worldPos))
             PlaceTower(worldPos);
         else
-            Debug.Log("Zona no válida para colocar torre!");
+            StartCoroutine(ShakePrevief());
     }
 
     bool IsValidPlacement(Vector3 position)
     {
-        Collider[] colliders = Physics.OverlapSphere(position, 1f);
+        // Obtener el tamaño del collider de la torre preview
+        float radius = 1f; // valor por defecto
+        if (towerPreview != null)
+        {
+            BoxCollider col = towerPreview.GetComponent<BoxCollider>();
+            if (col != null)
+                radius = Mathf.Max(col.size.x, col.size.z) * towerPreview.transform.localScale.x * 0.5f;
+        }
+
+        Collider[] colliders = Physics.OverlapSphere(position, radius);
         foreach (Collider col in colliders)
         {
             if (col.gameObject.layer == LayerMask.NameToLayer("Path") ||
@@ -122,7 +134,7 @@ public class TowerPlacer : MonoBehaviour
         selectedCost        = cost;
         isPlacing           = true;
 
-        towerPreview = Instantiate(prefab, Vector3.zero, Quaternion.identity);
+        towerPreview = Instantiate(prefab, new Vector3(0, 2f, 0), Quaternion.identity);
         DisableAttackScripts(towerPreview);
         SetPreviewColor(towerPreview, validColor);
     }
@@ -132,6 +144,7 @@ public class TowerPlacer : MonoBehaviour
         if (GameManager.Instance.SpendCrystals(selectedCost))
         {
             Destroy(towerPreview);
+            position.y = 2f;
             GameObject newTower = Instantiate(selectedTowerPrefab, position, Quaternion.identity);
             newTower.layer = LayerMask.NameToLayer("Obstacle");
             isPlacing      = false;
@@ -182,5 +195,28 @@ public class TowerPlacer : MonoBehaviour
             if (script is not TowerPlacer)
                 script.enabled = false;
         }
+    }
+    
+    IEnumerator ShakePrevief()
+    {
+        if (towerPreview == null) yield break;
+    
+        isShaking = true;
+        Vector3 originalPos = towerPreview.transform.position;
+        float duration  = 0.3f;
+        float elapsed   = 0f;
+        float magnitude = 0.3f;
+    
+        while (elapsed < duration)
+        {
+            float x = originalPos.x + Random.Range(-magnitude, magnitude);
+            float z = originalPos.z + Random.Range(-magnitude, magnitude);
+            towerPreview.transform.position = new Vector3(x, originalPos.y, z);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+    
+        towerPreview.transform.position = originalPos;
+        isShaking = false;
     }
 }
