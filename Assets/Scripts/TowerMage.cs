@@ -3,41 +3,32 @@ using UnityEngine;
 public class TowerMage : MonoBehaviour
 {
     [Header("Configuración")]
-    public float range = 5f;
-    public float damage = 40f;
+    public float range       = 5f;
+    public float damage      = 40f;
     public float splashDamage = 10f;
     public float splashRadius = 3f;
-    public float fireRate = 0.67f; // 1 disparo cada 1.5 segundos
 
     [Header("Proyectil")]
     public GameObject projectilePrefab;
+    public Transform shootPoint;
 
-    private float fireCountdown = 0f;
     private GameObject target;
+    private Animator magicianAnimator;
+
+    void Start()
+    {
+        Animator[] animators = GetComponentsInChildren<Animator>();
+        foreach (Animator a in animators)
+        {
+            if (a.gameObject.name == "magician_sprite")
+                magicianAnimator = a;
+        }
+    }
 
     void Update()
     {
         FindTarget();
-
-        if (target == null) return;
-
-        // Rotar hacia el enemigo
-        Vector3 direction = target.transform.position - transform.position;
-        direction.y = 0f;
-        if (direction != Vector3.zero)
-        {
-            Quaternion lookRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, 10f * Time.deltaTime);
-        }
-
-        // Disparar
-        if (fireCountdown <= 0f)
-        {
-            Shoot();
-            fireCountdown = 1f / fireRate;
-        }
-
-        fireCountdown -= Time.deltaTime;
+        UpdateAnimation();
     }
 
     void FindTarget()
@@ -56,30 +47,57 @@ public class TowerMage : MonoBehaviour
             }
         }
 
-        if (nearestEnemy != null && shortestDistance <= range)
-            target = nearestEnemy;
-        else
-            target = null;
+        target = (nearestEnemy != null && shortestDistance <= range) ? nearestEnemy : null;
     }
 
-    void Shoot()
+    void UpdateAnimation()
+    {
+        if (magicianAnimator == null) return;
+
+        if (target == null)
+        {
+            magicianAnimator.speed = 0f;
+            magicianAnimator.Play("magician_attack", 0, 0f);
+            return;
+        }
+
+        magicianAnimator.speed = 1f;
+
+        Vector3 dir = (target.transform.position - transform.position).normalized;
+
+        if (Mathf.Abs(dir.x) > Mathf.Abs(dir.z))
+            magicianAnimator.SetFloat("dirZ", 0f);
+        else
+            magicianAnimator.SetFloat("dirZ", dir.z);
+
+        magicianAnimator.SetFloat("dirX", dir.x);
+
+        SpriteRenderer sr = magicianAnimator.GetComponent<SpriteRenderer>();
+        if (sr != null)
+        {
+            if (dir.x > 0.1f)
+                sr.flipX = true;
+            else if (dir.x < -0.1f)
+                sr.flipX = false;
+        }
+    }
+
+    public void Shoot()
     {
         if (target == null) return;
+
         if (projectilePrefab == null)
         {
             Debug.LogWarning("TowerMage no tiene proyectil asignado!");
             return;
         }
 
-        // Crear la bola mágica en la posición de la torre
-        GameObject proj = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
-
-        // Decirle al proyectil a quién perseguir y cuánto daño hacer
+        Vector3 spawnPos = shootPoint != null ? shootPoint.position : transform.position;
+        GameObject proj  = Instantiate(projectilePrefab, spawnPos, Quaternion.identity);
         MageProjectile mp = proj.GetComponent<MageProjectile>();
+
         if (mp != null)
-        {
             mp.SetTarget(target, damage, splashDamage, splashRadius);
-        }
     }
 
     void OnDrawGizmosSelected()
