@@ -86,23 +86,23 @@ public class TowerPlacer : MonoBehaviour
 
     bool IsValidPlacement(Vector3 position)
     {
-        // Obtener el tamaño del collider de la torre preview
-        float radius = 1f; // valor por defecto
-        if (towerPreview != null)
-        {
-            BoxCollider col = towerPreview.GetComponent<BoxCollider>();
-            if (col != null)
-                radius = Mathf.Max(col.size.x, col.size.z) * towerPreview.transform.localScale.x * 0.5f;
-        }
-
-        Collider[] colliders = Physics.OverlapSphere(position, radius);
-        foreach (Collider col in colliders)
-        {
-            if (col.gameObject.layer == LayerMask.NameToLayer("Path") ||
-                col.gameObject.layer == LayerMask.NameToLayer("Obstacle"))
-                return false;
-        }
-        return true;
+        if (towerPreview == null) return false;
+    
+        BoxCollider col = towerPreview.GetComponent<BoxCollider>();
+        if (col == null) return false;
+    
+        Vector3 center = position + col.center;
+        Vector3 halfExtents = new Vector3(
+            col.size.x * towerPreview.transform.localScale.x * 0.5f,
+            col.size.y * towerPreview.transform.localScale.y * 0.5f,
+            col.size.z * towerPreview.transform.localScale.z * 0.5f
+        );
+    
+        int pathLayer     = 1 << LayerMask.NameToLayer("Path");
+        int obstacleLayer = 1 << LayerMask.NameToLayer("Obstacle");
+        int combinedMask  = pathLayer | obstacleLayer;
+    
+        return !Physics.CheckBox(center, halfExtents, Quaternion.identity, combinedMask);
     }
 
     public void SelectTower(int towerIndex)

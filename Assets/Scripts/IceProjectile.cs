@@ -7,7 +7,7 @@ public class IceProjectile : MonoBehaviour
     private float slowPercent;
     private float slowDuration;
     private float slowRadius;
-    private float speed = 10f;
+    private float speed = 16f;
 
     public float maxDistance = 7f;
     private Vector3 spawnPosition;

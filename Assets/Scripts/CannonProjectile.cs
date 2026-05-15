@@ -4,7 +4,7 @@ public class CannonProjectile : MonoBehaviour
 {
     private GameObject target;
     private float damage;
-    private float speed = 7f;
+    private float speed = 17f;
 
     public float maxDistance = 8f; // ← distancia máxima de viaje
     private Vector3 spawnPosition;

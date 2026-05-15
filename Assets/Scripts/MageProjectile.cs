@@ -6,7 +6,7 @@ public class MageProjectile : MonoBehaviour
     private float damage;
     private float splashDamage;
     private float splashRadius;
-    private float speed = 8f;
+    private float speed = 16f;
 
     public float maxDistance = 7f;
     private Vector3 spawnPosition;

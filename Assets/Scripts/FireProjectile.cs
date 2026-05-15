@@ -6,7 +6,7 @@ public class FireProjectile : MonoBehaviour
     private float damage;
     private float burnDamage;
     private float burnDelay;
-    private float speed = 9f;
+    private float speed = 14f;
 
     public float maxDistance = 7f;
     private Vector3 spawnPosition;

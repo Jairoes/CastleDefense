@@ -4,7 +4,7 @@ public class ArrowProjectile : MonoBehaviour
 {
     private GameObject target;
     private float damage;
-    private float speed = 14f;
+    private float speed = 18f;
 
     public float maxDistance = 9f;
     private Vector3 spawnPosition;
