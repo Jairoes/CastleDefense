@@ -9,15 +9,17 @@ public class TowerArcher : MonoBehaviour
     [Header("Proyectil")]
     public GameObject projectilePrefab;
 
+    [Header("Punto de disparo")]
+    public Transform shootPoint;
+
     private GameObject target;
     private Animator archerAnimator;
-    private SpriteRenderer archerSprite;
-    [Header("Punto de disparo")]
-    public Transform shootPoint; 
+    private bool firstShoot     = true;
+    private float noTargetTimer = 0f;
+    private float rechargeTime  = 0f;
 
     void Start()
     {
-        // Busca el Animator del arquero (hijo archer_sprite)
         Animator[] animators = GetComponentsInChildren<Animator>();
         foreach (Animator a in animators)
         {
@@ -25,7 +27,19 @@ public class TowerArcher : MonoBehaviour
                 archerAnimator = a;
         }
 
-        archerSprite = GetComponentInChildren<SpriteRenderer>();
+        // Obtener duración del clip
+        if (archerAnimator != null)
+        {
+            AnimationClip[] clips = archerAnimator.runtimeAnimatorController.animationClips;
+            foreach (AnimationClip clip in clips)
+            {
+                if (clip.name == "archer_idle")
+                {
+                    rechargeTime = clip.length;
+                    break;
+                }
+            }
+        }
     }
 
     void Update()
@@ -56,29 +70,37 @@ public class TowerArcher : MonoBehaviour
     void UpdateAnimation()
     {
         if (archerAnimator == null) return;
-    
+
         if (target == null)
         {
             archerAnimator.speed = 0f;
             archerAnimator.Play("archer_idle", 0, 0f);
+
+            noTargetTimer += Time.deltaTime;
+            if (noTargetTimer >= rechargeTime)
+                firstShoot = true;
             return;
         }
-    
+
+        noTargetTimer = 0f;
+
+        if (firstShoot)
+        {
+            archerAnimator.Play("archer_idle", 0, 0.8f);
+            firstShoot = false;
+        }
+
         archerAnimator.speed = 1f;
         archerAnimator.SetBool("isAttacking", true);
-    
+
         Vector3 dir = (target.transform.position - transform.position).normalized;
-    
+
         archerAnimator.SetFloat("dirX", dir.x);
         archerAnimator.SetFloat("dirZ", dir.z);
-    
-        // Si dirX es más fuerte que dirZ → disparar de lado
+
         if (Mathf.Abs(dir.x) > Mathf.Abs(dir.z))
-        {
-            archerAnimator.SetFloat("dirZ", 0f); // forzar animación de lado
-        }
-    
-        // Flip según dirección X
+            archerAnimator.SetFloat("dirZ", 0f);
+
         SpriteRenderer sr = archerAnimator.GetComponent<SpriteRenderer>();
         if (sr != null)
         {
@@ -100,7 +122,7 @@ public class TowerArcher : MonoBehaviour
         }
 
         Vector3 spawnPos = shootPoint != null ? shootPoint.position : transform.position;
-        GameObject proj = Instantiate(projectilePrefab, spawnPos, Quaternion.identity);
+        GameObject proj  = Instantiate(projectilePrefab, spawnPos, Quaternion.identity);
         ArrowProjectile ap = proj.GetComponent<ArrowProjectile>();
 
         if (ap != null)

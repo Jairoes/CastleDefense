@@ -15,6 +15,9 @@ public class TowerIce : MonoBehaviour
 
     private GameObject target;
     private Animator snowAnimator;
+    private bool firstShoot     = true;
+    private float noTargetTimer = 0f;
+    private float rechargeTime  = 0f;
 
     void Start()
     {
@@ -23,6 +26,19 @@ public class TowerIce : MonoBehaviour
         {
             if (a.gameObject.name == "snow_sprite")
                 snowAnimator = a;
+        }
+
+        if (snowAnimator != null)
+        {
+            AnimationClip[] clips = snowAnimator.runtimeAnimatorController.animationClips;
+            foreach (AnimationClip clip in clips)
+            {
+                if (clip.name == "snow_attack")
+                {
+                    rechargeTime = clip.length;
+                    break;
+                }
+            }
         }
     }
 
@@ -59,7 +75,19 @@ public class TowerIce : MonoBehaviour
         {
             snowAnimator.speed = 0f;
             snowAnimator.Play("snow_attack", 0, 0f);
+
+            noTargetTimer += Time.deltaTime;
+            if (noTargetTimer >= rechargeTime)
+                firstShoot = true;
             return;
+        }
+
+        noTargetTimer = 0f;
+
+        if (firstShoot)
+        {
+            snowAnimator.Play("snow_attack", 0, 0.8f);
+            firstShoot = false;
         }
 
         snowAnimator.speed = 1f;

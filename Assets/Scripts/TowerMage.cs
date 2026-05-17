@@ -3,8 +3,8 @@ using UnityEngine;
 public class TowerMage : MonoBehaviour
 {
     [Header("Configuración")]
-    public float range       = 5f;
-    public float damage      = 40f;
+    public float range        = 5f;
+    public float damage       = 40f;
     public float splashDamage = 10f;
     public float splashRadius = 3f;
 
@@ -14,6 +14,9 @@ public class TowerMage : MonoBehaviour
 
     private GameObject target;
     private Animator magicianAnimator;
+    private bool firstShoot     = true;
+    private float noTargetTimer = 0f;
+    private float rechargeTime  = 0f;
 
     void Start()
     {
@@ -22,6 +25,19 @@ public class TowerMage : MonoBehaviour
         {
             if (a.gameObject.name == "magician_sprite")
                 magicianAnimator = a;
+        }
+
+        if (magicianAnimator != null)
+        {
+            AnimationClip[] clips = magicianAnimator.runtimeAnimatorController.animationClips;
+            foreach (AnimationClip clip in clips)
+            {
+                if (clip.name == "magician_attack")
+                {
+                    rechargeTime = clip.length;
+                    break;
+                }
+            }
         }
     }
 
@@ -58,7 +74,19 @@ public class TowerMage : MonoBehaviour
         {
             magicianAnimator.speed = 0f;
             magicianAnimator.Play("magician_attack", 0, 0f);
+
+            noTargetTimer += Time.deltaTime;
+            if (noTargetTimer >= rechargeTime)
+                firstShoot = true;
             return;
+        }
+
+        noTargetTimer = 0f;
+
+        if (firstShoot)
+        {
+            magicianAnimator.Play("magician_attack", 0, 0.8f);
+            firstShoot = false;
         }
 
         magicianAnimator.speed = 1f;
