@@ -87,6 +87,7 @@ public class TowerMage : MonoBehaviour
         {
             magicianAnimator.Play("magician_attack", 0, 0.8f);
             firstShoot = false;
+            noTargetTimer = 0f;
         }
 
         magicianAnimator.speed = 1f;

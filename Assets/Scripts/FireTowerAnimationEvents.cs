@@ -12,6 +12,9 @@ public class FireTowerAnimationEvents : MonoBehaviour
     public void Shoot()
     {
         if (towerFire != null)
+        {
+            towerFire.ResetTimer();
             towerFire.Shoot();
+        }
     }
 }

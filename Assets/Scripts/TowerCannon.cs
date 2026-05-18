@@ -88,6 +88,7 @@ public class TowerCannon : MonoBehaviour
         {
             cannonAnimator.Play("cannon_attack", 0, 0.8f);
             firstShot = false;
+            noTargetTimer = 0f;
         }
 
         cannonAnimator.speed = 1f;

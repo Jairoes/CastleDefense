@@ -82,6 +82,7 @@ public class TowerFire : MonoBehaviour
         {
             fireAnimator.Play("fire_tower_idle", 0, 0.8f);
             firstShoot = false;
+            noTargetTimer = 0f;
         }
 
         fireAnimator.speed = 1f;
@@ -111,5 +112,9 @@ public class TowerFire : MonoBehaviour
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, range);
+    }
+    public void ResetTimer ()
+    {
+        noTargetTimer = 0f;
     }
 }

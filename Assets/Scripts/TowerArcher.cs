@@ -88,6 +88,7 @@ public class TowerArcher : MonoBehaviour
         {
             archerAnimator.Play("archer_idle", 0, 0.8f);
             firstShoot = false;
+            noTargetTimer = 0f;
         }
 
         archerAnimator.speed = 1f;

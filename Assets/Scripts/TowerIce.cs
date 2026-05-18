@@ -88,6 +88,7 @@ public class TowerIce : MonoBehaviour
         {
             snowAnimator.Play("snow_attack", 0, 0.8f);
             firstShoot = false;
+            noTargetTimer = 0f;
         }
 
         snowAnimator.speed = 1f;
