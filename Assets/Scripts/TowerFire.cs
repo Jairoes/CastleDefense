@@ -5,39 +5,41 @@ public class TowerFire : MonoBehaviour
     [Header("Configuración")]
     public float range      = 6f;
     public float damage     = 25f;
-    public float burnDamage = 10f;  // tick extra de quemadura
-    public float burnDelay  = 1f;   // segundos después del impacto
-    public float fireRate   = 0.5f; // 1 disparo cada 2 segundos
+    public float burnDamage = 10f;
+    public float burnDelay  = 1f;
 
     [Header("Proyectil")]
     public GameObject projectilePrefab;
+    public Transform shootPoint;
 
-    private float fireCountdown = 0f;
     private GameObject target;
+    private Animator fireAnimator;
+    private bool firstShoot     = true;
+    private float noTargetTimer = 0f;
+    private float rechargeTime  = 0f;
+
+    void Start()
+    {
+        fireAnimator = GetComponentInChildren<Animator>();
+
+        if (fireAnimator != null)
+        {
+            AnimationClip[] clips = fireAnimator.runtimeAnimatorController.animationClips;
+            foreach (AnimationClip clip in clips)
+            {
+                if (clip.name == "fire_tower_idle")
+                {
+                    rechargeTime = clip.length;
+                    break;
+                }
+            }
+        }
+    }
 
     void Update()
     {
         FindTarget();
-
-        if (target == null) return;
-
-        // Rotar hacia el enemigo
-        Vector3 direction = target.transform.position - transform.position;
-        direction.y = 0f;
-        if (direction != Vector3.zero)
-        {
-            Quaternion lookRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, 10f * Time.deltaTime);
-        }
-
-        // Countdown primero, luego verificar
-        fireCountdown -= Time.deltaTime;
-
-        if (fireCountdown <= 0f)
-        {
-            Shoot();
-            fireCountdown = 1f / fireRate;
-        }
+        UpdateAnimation();
     }
 
     void FindTarget()
@@ -59,7 +61,33 @@ public class TowerFire : MonoBehaviour
         target = (nearestEnemy != null && shortestDistance <= range) ? nearestEnemy : null;
     }
 
-    void Shoot()
+    void UpdateAnimation()
+    {
+        if (fireAnimator == null) return;
+
+        if (target == null)
+        {
+            fireAnimator.speed = 0f;
+            fireAnimator.Play("fire_tower_idle", 0, 0f);
+
+            noTargetTimer += Time.deltaTime;
+            if (noTargetTimer >= rechargeTime)
+                firstShoot = true;
+            return;
+        }
+
+        noTargetTimer = 0f;
+
+        if (firstShoot)
+        {
+            fireAnimator.Play("fire_tower_idle", 0, 0.8f);
+            firstShoot = false;
+        }
+
+        fireAnimator.speed = 1f;
+    }
+
+    public void Shoot()
     {
         if (target == null) return;
 
@@ -69,7 +97,8 @@ public class TowerFire : MonoBehaviour
             return;
         }
 
-        GameObject proj = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
+        Vector3 spawnPos = shootPoint != null ? shootPoint.position : transform.position;
+        GameObject proj  = Instantiate(projectilePrefab, spawnPos, Quaternion.identity);
         FireProjectile fp = proj.GetComponent<FireProjectile>();
 
         if (fp != null)
