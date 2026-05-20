@@ -6,10 +6,7 @@ public class FireProjectile : MonoBehaviour
     private float damage;
     private float burnDamage;
     private float burnDelay;
-    private float speed = 14f;
-
-    public float maxDistance = 7f;
-    private Vector3 spawnPosition;
+    private float speed = 18f;
 
     public void SetTarget(GameObject _target, float _damage, float _burnDamage, float _burnDelay)
     {
@@ -19,20 +16,9 @@ public class FireProjectile : MonoBehaviour
         burnDelay  = _burnDelay;
     }
 
-    void Start()
-    {
-        spawnPosition = transform.position;
-    }
-
     void Update()
     {
         if (target == null)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        if (Vector3.Distance(spawnPosition, transform.position) >= maxDistance)
         {
             Destroy(gameObject);
             return;

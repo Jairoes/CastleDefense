@@ -6,29 +6,15 @@ public class ArrowProjectile : MonoBehaviour
     private float damage;
     private float speed = 18f;
 
-    public float maxDistance = 9f;
-    private Vector3 spawnPosition;
-
     public void SetTarget(GameObject _target, float _damage)
     {
-        target = _target;
-        damage = _damage;
-    }
-
-    void Start()
-    {
-        spawnPosition = transform.position;
+        target  = _target;
+        damage  = _damage;
     }
 
     void Update()
     {
         if (target == null)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        if (Vector3.Distance(spawnPosition, transform.position) >= maxDistance)
         {
             Destroy(gameObject);
             return;
@@ -54,7 +40,6 @@ public class ArrowProjectile : MonoBehaviour
         EnemyHealth health = target.GetComponent<EnemyHealth>();
         if (health != null)
             health.TakeDamage(damage);
-
         Destroy(gameObject);
     }
 }

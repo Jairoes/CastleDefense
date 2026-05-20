@@ -11,7 +11,11 @@ public class CannonAnimationEvents : MonoBehaviour
 
     public void Shoot()
     {
+        // Debug.Log("cannon animation event ejecutado!");
         if (towerCannon != null)
+        {
+            towerCannon.ResetTimer();
             towerCannon.Shoot();
+        }
     }
 }

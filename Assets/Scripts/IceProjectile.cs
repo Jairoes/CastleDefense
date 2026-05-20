@@ -7,10 +7,7 @@ public class IceProjectile : MonoBehaviour
     private float slowPercent;
     private float slowDuration;
     private float slowRadius;
-    private float speed = 16f;
-
-    public float maxDistance = 7f;
-    private Vector3 spawnPosition;
+    private float speed = 18f;
 
     public void SetTarget(GameObject _target, float _damage, float _slowPercent, float _slowDuration, float _slowRadius)
     {
@@ -21,20 +18,9 @@ public class IceProjectile : MonoBehaviour
         slowRadius   = _slowRadius;
     }
 
-    void Start()
-    {
-        spawnPosition = transform.position;
-    }
-
     void Update()
     {
         if (target == null)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        if (Vector3.Distance(spawnPosition, transform.position) >= maxDistance)
         {
             Destroy(gameObject);
             return;

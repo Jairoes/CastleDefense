@@ -6,10 +6,7 @@ public class MageProjectile : MonoBehaviour
     private float damage;
     private float splashDamage;
     private float splashRadius;
-    private float speed = 16f;
-
-    public float maxDistance = 7f;
-    private Vector3 spawnPosition;
+    private float speed = 18f;
 
     public void SetTarget(GameObject _target, float _damage, float _splashDamage, float _splashRadius)
     {
@@ -19,20 +16,9 @@ public class MageProjectile : MonoBehaviour
         splashRadius = _splashRadius;
     }
 
-    void Start()
-    {
-        spawnPosition = transform.position;
-    }
-
     void Update()
     {
         if (target == null)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        if (Vector3.Distance(spawnPosition, transform.position) >= maxDistance)
         {
             Destroy(gameObject);
             return;
