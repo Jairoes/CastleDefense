@@ -98,11 +98,32 @@ public class TowerPlacer : MonoBehaviour
             col.size.z * towerPreview.transform.localScale.z * 0.5f
         );
     
+        // Verificar que NO esté en Path u Obstacle
         int pathLayer     = 1 << LayerMask.NameToLayer("Path");
         int obstacleLayer = 1 << LayerMask.NameToLayer("Obstacle");
-        int combinedMask  = pathLayer | obstacleLayer;
+        int blockedMask   = pathLayer | obstacleLayer;
     
-        return !Physics.CheckBox(center, halfExtents, Quaternion.identity, combinedMask);
+        if (Physics.CheckBox(center, halfExtents, Quaternion.identity, blockedMask))
+            return false;
+    
+        // Verificar que las 4 esquinas estén dentro de PlacementZone
+        int placementMask = 1 << LayerMask.NameToLayer("PlacementZone");
+    
+        Vector3[] corners = new Vector3[]
+        {
+            center + new Vector3( halfExtents.x, 0,  halfExtents.z),
+            center + new Vector3(-halfExtents.x, 0,  halfExtents.z),
+            center + new Vector3( halfExtents.x, 0, -halfExtents.z),
+            center + new Vector3(-halfExtents.x, 0, -halfExtents.z),
+        };
+    
+        foreach (Vector3 corner in corners)
+        {
+            if (!Physics.CheckSphere(corner, 0.1f, placementMask))
+                return false; // una esquina fuera de la zona
+        }
+    
+        return true;
     }
 
     public void SelectTower(int towerIndex)
