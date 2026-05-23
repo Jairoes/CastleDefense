@@ -13,7 +13,7 @@ public class CastleHealth : MonoBehaviour
     [Header("Efecto de destrucción")]
     public float shakeDuration  = 0.5f;
     public float shakeMagnitude = 0.3f;
-    public GameObject destroyedCastlePrefab;
+    public GameObject castleDestroyedSprite; // ← sprite destruido hijo
 
     private Vector3 originalPosition;
     private bool isDestroyed = false;
@@ -23,6 +23,10 @@ public class CastleHealth : MonoBehaviour
         currentHealth    = maxHealth;
         originalPosition = transform.position;
         UpdateUI();
+
+        // Asegurarse que el sprite destruido esté desactivado al inicio
+        if (castleDestroyedSprite != null)
+            castleDestroyedSprite.SetActive(false);
     }
 
     public void TakeDamage(float damage)
@@ -48,20 +52,22 @@ public class CastleHealth : MonoBehaviour
         // 1. Shake fuerte
         yield return StartCoroutine(Shake(shakeDuration, shakeMagnitude));
 
-        // 2. Partículas de polvo + crater
+        // 2. Partículas de polvo
         SpawnDustParticles();
-        if (destroyedCastlePrefab != null)
-            Instantiate(destroyedCastlePrefab, transform.position, transform.rotation);
 
-        // 3. Castillo desaparece — solo el renderer, no el objeto completo
+        // 3. Castillo desaparece — ocultar sprite normal
         Renderer[] renderers = GetComponentsInChildren<Renderer>();
         foreach (Renderer r in renderers)
             r.enabled = false;
 
-        // 4. Pausa dramática
+        // 4. Mostrar sprite destruido
+        if (castleDestroyedSprite != null)
+            castleDestroyedSprite.SetActive(true);
+
+        // 5. Pausa dramática
         yield return new WaitForSecondsRealtime(0.8f);
 
-        // 5. Game Over
+        // 6. Game Over
         GameManager.Instance.TriggerGameOver();
     }
 
@@ -91,7 +97,7 @@ public class CastleHealth : MonoBehaviour
         ParticleSystem ps = dustGO.AddComponent<ParticleSystem>();
         ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 
-        var main       = ps.main;
+        var main             = ps.main;
         main.loop            = false;
         main.startLifetime   = 1.5f;
         main.startSpeed      = 4f;
@@ -106,36 +112,16 @@ public class CastleHealth : MonoBehaviour
             new ParticleSystem.Burst(0f, 50)
         });
 
-        var shape      = ps.shape;
-        shape.enabled  = true;
+        var shape       = ps.shape;
+        shape.enabled   = true;
         shape.shapeType = ParticleSystemShapeType.Sphere;
-        shape.radius   = 1.5f;
+        shape.radius    = 1.5f;
 
         var psRenderer = ps.GetComponent<ParticleSystemRenderer>();
         psRenderer.material = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit"));
-        
+
         ps.Play();
         Destroy(dustGO, 3f);
-    }
-
-    void SpawnCrater()
-    {
-        GameObject crater = GameObject.CreatePrimitive(PrimitiveType.Quad);
-        crater.name = "Crater";
-        crater.transform.position = new Vector3(
-            transform.position.x,
-            0.01f, // ligeramente encima del suelo
-            transform.position.z
-        );
-        crater.transform.rotation = Quaternion.Euler(90, 0, 0); // acostado
-        crater.transform.localScale = new Vector3(3f, 3f, 1f); // tamaño del cráter
-
-        // Color gris oscuro simulando escombros
-        Material craterMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-        craterMat.color = new Color(0.3f, 0.25f, 0.2f);
-        crater.GetComponent<Renderer>().material = craterMat;
-
-        Destroy(crater.GetComponent<MeshCollider>());
     }
 
     void UpdateUI()
