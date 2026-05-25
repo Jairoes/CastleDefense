@@ -13,7 +13,7 @@ public class CastleHealth : MonoBehaviour
     [Header("Efecto de destrucción")]
     public float shakeDuration  = 0.5f;
     public float shakeMagnitude = 0.3f;
-    public GameObject castleDestroyedSprite; // ← sprite destruido hijo
+    public GameObject castleDestroyedSprite;
 
     private Vector3 originalPosition;
     private bool isDestroyed = false;
@@ -24,7 +24,6 @@ public class CastleHealth : MonoBehaviour
         originalPosition = transform.position;
         UpdateUI();
 
-        // Asegurarse que el sprite destruido esté desactivado al inicio
         if (castleDestroyedSprite != null)
             castleDestroyedSprite.SetActive(false);
     }
@@ -52,17 +51,22 @@ public class CastleHealth : MonoBehaviour
         // 1. Shake fuerte
         yield return StartCoroutine(Shake(shakeDuration, shakeMagnitude));
 
-        // 2. Partículas de polvo
+        // 2. Partículas
         SpawnDustParticles();
 
-        // 3. Castillo desaparece — ocultar sprite normal
-        Renderer[] renderers = GetComponentsInChildren<Renderer>();
-        foreach (Renderer r in renderers)
-            r.enabled = false;
-
-        // 4. Mostrar sprite destruido
+        // 3. Activar sprite destruido PRIMERO
         if (castleDestroyedSprite != null)
             castleDestroyedSprite.SetActive(true);
+
+        // 4. Ocultar renderers EXCEPTO el destruido
+        Renderer[] renderers = GetComponentsInChildren<Renderer>();
+        foreach (Renderer r in renderers)
+        {
+            if (castleDestroyedSprite != null &&
+                r.transform.IsChildOf(castleDestroyedSprite.transform))
+                continue;
+            r.enabled = false;
+        }
 
         // 5. Pausa dramática
         yield return new WaitForSecondsRealtime(0.8f);

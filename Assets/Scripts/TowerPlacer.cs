@@ -23,60 +23,98 @@ public class TowerPlacer : MonoBehaviour
 
     private GameObject selectedTowerPrefab;
     private GameObject towerPreview;
-    private int selectedCost  = 0;
-    private bool isPlacing    = false;
+    private int selectedCost = 0;
+    private bool isPlacing   = false;
+    private bool isDragging  = false;
+    private bool isShaking   = false;
 
-    private Color validColor   = new Color(1f, 1f, 1f, 0.5f);
-    private Color invalidColor = new Color(1f, 1f, 1f, 0.5f);
-    private bool isShaking = false;
+    private Color previewColor = new Color(1f, 1f, 1f, 0.5f);
 
-    // Input Actions
-    private InputAction tapAction;
+    private InputAction pressAction;
+    private InputAction releaseAction;
 
     void Awake()
     {
         Instance = this;
 
-        // Acción de tap — funciona tanto en móvil (touch) como en PC (clic)
-        tapAction = new InputAction("Tap", binding: "<Pointer>/press");
-        tapAction.performed += OnTap;
+        pressAction   = new InputAction("Press",   binding: "<Pointer>/press");
+        releaseAction = new InputAction("Release", binding: "<Pointer>/press");
+
+        pressAction.started    += OnTouchStart;
+        releaseAction.canceled += OnTouchEnd;
     }
 
-    void OnEnable()  { tapAction.Enable(); }
-    void OnDisable() { tapAction.Disable(); }
+    void OnEnable()
+    {
+        pressAction.Enable();
+        releaseAction.Enable();
+    }
 
-    void OnDestroy() { tapAction.performed -= OnTap; }
+    void OnDisable()
+    {
+        pressAction.Disable();
+        releaseAction.Disable();
+    }
+
+    void OnDestroy()
+    {
+        pressAction.started    -= OnTouchStart;
+        releaseAction.canceled -= OnTouchEnd;
+    }
 
     void Update()
     {
-        if (!isPlacing) return;
+        if (!isPlacing || !isDragging) return;
+
+        // Solo mover el preview si el dedo NO está sobre la UI
+        if (IsPointerOverUI())
+        {
+            // Ocultar preview mientras está sobre la UI
+            if (towerPreview != null && !isShaking)
+                towerPreview.transform.position = new Vector3(0, -100f, 0);
+            return;
+        }
 
         Vector3 worldPos = GetPointerWorldPosition();
         worldPos.y = 2f;
 
-        if (towerPreview != null)
-        {
+        if (towerPreview != null && !isShaking)
             towerPreview.transform.position = worldPos;
-            bool valid = IsValidPlacement(worldPos);
-            SetPreviewColor(towerPreview, valid ? validColor : invalidColor);
-        }
     }
 
-    void OnTap(InputAction.CallbackContext context)
+    void OnTouchStart(InputAction.CallbackContext context)
     {
         if (!isPlacing) return;
+        if (isDragging) return; // ya está arrastrando desde el botón
 
-        // Ignorar si el tap fue sobre la UI (botones de torres)
-        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
-            return;
+        // Si el toque empezó sobre la UI, no hacer nada aquí
+        if (IsPointerOverUI()) return;
 
-        // En móvil verificar con el ID del primer toque
-        if (Touchscreen.current != null &&
-            EventSystem.current.IsPointerOverGameObject(
-                Touchscreen.current.primaryTouch.touchId.ReadValue()))
-            return;
+        // Toque en el mapa (modo tap) → empezar a seguir el dedo
+        isDragging = true;
 
         Vector3 worldPos = GetPointerWorldPosition();
+        worldPos.y = 2f;
+        if (towerPreview != null)
+            towerPreview.transform.position = worldPos;
+    }
+
+    void OnTouchEnd(InputAction.CallbackContext context)
+    {
+        if (!isPlacing) return;
+        if (!isDragging) return;
+
+        // Si soltó sobre la UI (botón) sin llevar al mapa → modo tap, queda seleccionada
+        if (IsPointerOverUI())
+        {
+            isDragging = false;
+            return;
+        }
+
+        isDragging = false;
+
+        Vector3 worldPos = GetPointerWorldPosition();
+        worldPos.y = 2f;
 
         if (IsValidPlacement(worldPos))
             PlaceTower(worldPos);
@@ -84,31 +122,40 @@ public class TowerPlacer : MonoBehaviour
             StartCoroutine(ShakePrevief());
     }
 
+    bool IsPointerOverUI()
+    {
+        if (EventSystem.current == null) return false;
+
+        if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.isPressed)
+            return EventSystem.current.IsPointerOverGameObject(
+                Touchscreen.current.primaryTouch.touchId.ReadValue());
+
+        return EventSystem.current.IsPointerOverGameObject();
+    }
+
     bool IsValidPlacement(Vector3 position)
     {
         if (towerPreview == null) return false;
-    
+
         BoxCollider col = towerPreview.GetComponent<BoxCollider>();
         if (col == null) return false;
-    
+
         Vector3 center = position + col.center;
         Vector3 halfExtents = new Vector3(
             col.size.x * towerPreview.transform.localScale.x * 0.5f,
             col.size.y * towerPreview.transform.localScale.y * 0.5f,
             col.size.z * towerPreview.transform.localScale.z * 0.5f
         );
-    
-        // Verificar que NO esté en Path u Obstacle
+
         int pathLayer     = 1 << LayerMask.NameToLayer("Path");
         int obstacleLayer = 1 << LayerMask.NameToLayer("Obstacle");
         int blockedMask   = pathLayer | obstacleLayer;
-    
+
         if (Physics.CheckBox(center, halfExtents, Quaternion.identity, blockedMask))
             return false;
-    
-        // Verificar que las 4 esquinas estén dentro de PlacementZone
+
         int placementMask = 1 << LayerMask.NameToLayer("PlacementZone");
-    
+
         Vector3[] corners = new Vector3[]
         {
             center + new Vector3( halfExtents.x, 0,  halfExtents.z),
@@ -116,13 +163,14 @@ public class TowerPlacer : MonoBehaviour
             center + new Vector3( halfExtents.x, 0, -halfExtents.z),
             center + new Vector3(-halfExtents.x, 0, -halfExtents.z),
         };
-    
-        foreach (Vector3 corner in corners)
+
+        for (int i = 0; i < corners.Length; i++)
         {
-            if (!Physics.CheckSphere(corner, 0.1f, placementMask))
-                return false; // una esquina fuera de la zona
+            Vector3 checkBox = new Vector3(0.1f, 50f, 0.1f);
+            if (!Physics.CheckBox(corners[i], checkBox, Quaternion.identity, placementMask))
+                return false;
         }
-    
+
         return true;
     }
 
@@ -148,16 +196,16 @@ public class TowerPlacer : MonoBehaviour
             return;
         }
 
-        // Cancela cualquier torre seleccionada anteriormente
         CancelPlacement();
 
         selectedTowerPrefab = prefab;
         selectedCost        = cost;
         isPlacing           = true;
+        isDragging          = true; // permite arrastre inmediato desde el botón
 
-        towerPreview = Instantiate(prefab, new Vector3(0, 2f, 0), Quaternion.identity);
+        towerPreview = Instantiate(prefab, new Vector3(0, -100f, 0), Quaternion.identity);
         DisableAttackScripts(towerPreview);
-        SetPreviewColor(towerPreview, validColor);
+        SetPreviewColor(towerPreview, previewColor);
     }
 
     void PlaceTower(Vector3 position)
@@ -168,8 +216,9 @@ public class TowerPlacer : MonoBehaviour
             position.y = 2f;
             GameObject newTower = Instantiate(selectedTowerPrefab, position, Quaternion.identity);
             newTower.layer = LayerMask.NameToLayer("Obstacle");
-            isPlacing      = false;
-            towerPreview   = null;
+            isPlacing    = false;
+            isDragging   = false;
+            towerPreview = null;
         }
     }
 
@@ -178,12 +227,13 @@ public class TowerPlacer : MonoBehaviour
         if (towerPreview != null)
             Destroy(towerPreview);
         isPlacing    = false;
+        isDragging   = false;
+        isShaking    = false;
         towerPreview = null;
     }
 
     Vector3 GetPointerWorldPosition()
     {
-        // Funciona tanto con mouse (PC/editor) como touch (móvil)
         Vector2 screenPos;
 
         if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.isPressed)
@@ -217,17 +267,17 @@ public class TowerPlacer : MonoBehaviour
                 script.enabled = false;
         }
     }
-    
+
     IEnumerator ShakePrevief()
     {
         if (towerPreview == null) yield break;
-    
+
         isShaking = true;
         Vector3 originalPos = towerPreview.transform.position;
         float duration  = 0.3f;
         float elapsed   = 0f;
         float magnitude = 0.3f;
-    
+
         while (elapsed < duration)
         {
             float x = originalPos.x + Random.Range(-magnitude, magnitude);
@@ -236,7 +286,7 @@ public class TowerPlacer : MonoBehaviour
             elapsed += Time.deltaTime;
             yield return null;
         }
-    
+
         towerPreview.transform.position = originalPos;
         isShaking = false;
     }
