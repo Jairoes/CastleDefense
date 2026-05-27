@@ -24,28 +24,28 @@ public class WaveManager : MonoBehaviour
     public WaypointPath waypointPath;
 
     [Header("Flujo continuo")]
-    public List<EnemySpawn> continuousEnemies;  // enemigos del flujo normal
-    public float timeBetweenGroups   = 8f;      // segundos entre grupos
-    public int   minPerGroup         = 2;       // mínimo enemigos por grupo
-    public int   maxPerGroup         = 4;       // máximo enemigos por grupo
-    public float timeBetweenEnemies  = 1f;      // tiempo entre cada enemigo del grupo
-    public float continuousSpeedUp   = 0.85f;   // factor de aceleración tras oleada 1
+    public List<EnemySpawn> continuousEnemies;
+    public float timeBetweenGroups   = 8f;
+    public int   minPerGroup         = 2;
+    public int   maxPerGroup         = 4;
+    public float timeBetweenEnemies  = 1f;
+    public float continuousSpeedUp   = 0.85f;
 
     [Header("Oleadas especiales")]
-    public List<BigWave> bigWaves;              // oleadas grandes en momentos clave
+    public List<BigWave> bigWaves;
 
     [Header("Estado")]
-    public int  currentWave    = 0;             // oleada especial actual (para UI)
+    public int  currentWave     = 0;
     public bool isBigWaveActive = false;
 
-    private float gameTimer      = 0f;
-    private int   bigWaveIndex   = 0;
-    private bool  gameFinished   = false;
+    private float gameTimer         = 0f;
+    private int   bigWaveIndex      = 0;
+    private bool  gameFinished      = false;
     private float currentGroupTimer = 0f;
 
     void Start()
     {
-        currentGroupTimer = timeBetweenGroups; // primer grupo sale al inicio
+        currentGroupTimer = timeBetweenGroups;
         StartCoroutine(CheckBigWaves());
     }
 
@@ -57,7 +57,6 @@ public class WaveManager : MonoBehaviour
         gameTimer         += Time.deltaTime;
         currentGroupTimer += Time.deltaTime;
 
-        // Flujo continuo — solo si no hay oleada grande activa
         if (!isBigWaveActive && bigWaveIndex < bigWaves.Count && currentGroupTimer >= timeBetweenGroups)
         {
             currentGroupTimer = 0f;
@@ -65,31 +64,34 @@ public class WaveManager : MonoBehaviour
         }
     }
 
-    // Coroutine que vigila cuándo lanzar oleadas grandes
     IEnumerator CheckBigWaves()
     {
         while (bigWaveIndex < bigWaves.Count)
         {
             BigWave nextWave = bigWaves[bigWaveIndex];
 
-            // Esperar hasta que llegue el momento de la oleada
             yield return new WaitUntil(() => gameTimer >= nextWave.triggerAtTime);
 
-            // Lanzar oleada grande
             yield return StartCoroutine(LaunchBigWave(nextWave));
             bigWaveIndex++;
 
-            // Después de la oleada 1, acelerar el flujo continuo
             if (bigWaveIndex == 1)
             {
-                timeBetweenGroups   *= continuousSpeedUp;
-                timeBetweenEnemies  *= continuousSpeedUp;
+                timeBetweenGroups  *= continuousSpeedUp;
+                timeBetweenEnemies *= continuousSpeedUp;
             }
         }
 
         // Todas las oleadas grandes terminaron — esperar que mueran todos
         yield return new WaitUntil(() =>
             GameObject.FindGameObjectsWithTag("Enemy").Length == 0);
+
+        // Verificar que no haya Game Over antes de dar victoria
+        if (GameManager.Instance.gameOver)
+        {
+            gameFinished = true;
+            yield break;
+        }
 
         gameFinished = true;
         GameManager.Instance.TriggerVictory();
@@ -121,12 +123,10 @@ public class WaveManager : MonoBehaviour
     {
         if (continuousEnemies.Count == 0) yield break;
 
-        // Cantidad aleatoria del grupo
         int groupSize = Random.Range(minPerGroup, maxPerGroup + 1);
 
         for (int i = 0; i < groupSize; i++)
         {
-            // Elegir enemigo aleatorio de la lista de flujo continuo
             EnemySpawn spawn = continuousEnemies[Random.Range(0, continuousEnemies.Count)];
             SpawnEnemy(spawn.enemyPrefab);
             yield return new WaitForSeconds(timeBetweenEnemies);

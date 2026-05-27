@@ -32,33 +32,48 @@ public class CastleHealth : MonoBehaviour
     {
         if (GameManager.Instance.gameOver) return;
         if (isDestroyed) return;
-
+    
         currentHealth -= damage;
         currentHealth  = Mathf.Clamp(currentHealth, 0, maxHealth);
         UpdateUI();
-
+    
+        if (currentHealth <= 0)
+        {
+            isDestroyed = true;
+    
+            // Mostrar castillo destruido inmediatamente
+            if (castleDestroyedSprite != null)
+                castleDestroyedSprite.SetActive(true);
+    
+            Renderer[] renderers = GetComponentsInChildren<Renderer>();
+            foreach (Renderer r in renderers)
+            {
+                if (castleDestroyedSprite != null &&
+                    r.transform.IsChildOf(castleDestroyedSprite.transform))
+                    continue;
+                r.enabled = false;
+            }
+    
+            // Partículas protegidas (si fallan, no afecta el Game Over)
+            try { SpawnDustParticles(); }
+            catch { }
+    
+            // Game Over directo
+            GameManager.Instance.TriggerGameOver();
+            return;
+        }
+    
         StopAllCoroutines();
         StartCoroutine(Shake(0.15f, 0.1f));
-
-        if (currentHealth <= 0)
-            StartCoroutine(DestroySequence());
     }
 
-    IEnumerator DestroySequence()
+    IEnumerator DestroyThenGameOver()
     {
-        isDestroyed = true;
-
-        // 1. Shake fuerte
-        yield return StartCoroutine(Shake(shakeDuration, shakeMagnitude));
-
-        // 2. Partículas
-        SpawnDustParticles();
-
-        // 3. Activar sprite destruido PRIMERO
+        // 1. Mostrar castillo destruido PRIMERO
         if (castleDestroyedSprite != null)
             castleDestroyedSprite.SetActive(true);
 
-        // 4. Ocultar renderers EXCEPTO el destruido
+        // 2. Ocultar renderers EXCEPTO el destruido
         Renderer[] renderers = GetComponentsInChildren<Renderer>();
         foreach (Renderer r in renderers)
         {
@@ -68,10 +83,13 @@ public class CastleHealth : MonoBehaviour
             r.enabled = false;
         }
 
-        // 5. Pausa dramática
+        // 3. Partículas
+        SpawnDustParticles();
+
+        // 4. Esperar con tiempo real (no afectado por pausa)
         yield return new WaitForSecondsRealtime(0.8f);
 
-        // 6. Game Over
+        // 5. Game Over
         GameManager.Instance.TriggerGameOver();
     }
 

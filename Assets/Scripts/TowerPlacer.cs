@@ -32,6 +32,7 @@ public class TowerPlacer : MonoBehaviour
 
     private InputAction pressAction;
     private InputAction releaseAction;
+    private Vector3 lastWorldPos;
 
     void Awake()
     {
@@ -66,10 +67,8 @@ public class TowerPlacer : MonoBehaviour
     {
         if (!isPlacing || !isDragging) return;
 
-        // Solo mover el preview si el dedo NO está sobre la UI
         if (IsPointerOverUI())
         {
-            // Ocultar preview mientras está sobre la UI
             if (towerPreview != null && !isShaking)
                 towerPreview.transform.position = new Vector3(0, -100f, 0);
             return;
@@ -77,6 +76,7 @@ public class TowerPlacer : MonoBehaviour
 
         Vector3 worldPos = GetPointerWorldPosition();
         worldPos.y = 2f;
+        lastWorldPos = worldPos; // ← guardar última posición
 
         if (towerPreview != null && !isShaking)
             towerPreview.transform.position = worldPos;
@@ -103,21 +103,18 @@ public class TowerPlacer : MonoBehaviour
     {
         if (!isPlacing) return;
         if (!isDragging) return;
-
-        // Si soltó sobre la UI (botón) sin llevar al mapa → modo tap, queda seleccionada
+    
         if (IsPointerOverUI())
         {
             isDragging = false;
             return;
         }
-
+    
         isDragging = false;
-
-        Vector3 worldPos = GetPointerWorldPosition();
-        worldPos.y = 2f;
-
-        if (IsValidPlacement(worldPos))
-            PlaceTower(worldPos);
+    
+        // Usar la última posición guardada durante el arrastre
+        if (IsValidPlacement(lastWorldPos))
+            PlaceTower(lastWorldPos);
         else
             StartCoroutine(ShakePrevief());
     }

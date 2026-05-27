@@ -7606,7 +7606,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -6922187488808801084, guid: ac1658e1d957f7846a882b3c34bc69b3, type: 3}
       propertyPath: m_Name
-      value: Castle
+      value: castle
       objectReference: {fileID: 0}
     - target: {fileID: 3848688129510517219, guid: ac1658e1d957f7846a882b3c34bc69b3, type: 3}
       propertyPath: m_Enabled
@@ -7617,10 +7617,10 @@ PrefabInstance:
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: -7091441805879785097, guid: ac1658e1d957f7846a882b3c34bc69b3, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1009541114}
+      addedObject: {fileID: 80019839}
     - targetCorrespondingSourceObject: {fileID: -7091441805879785097, guid: ac1658e1d957f7846a882b3c34bc69b3, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 80019839}
+      addedObject: {fileID: 1009541114}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: -6922187488808801084, guid: ac1658e1d957f7846a882b3c34bc69b3, type: 3}
       insertIndex: -1
