@@ -78,6 +78,6 @@ public class GameManager : MonoBehaviour
     void UpdateCrystalsUI()
     {
         if (crystalsText != null)
-            crystalsText.text = "💎 " + crystals;
+            crystalsText.text = "" + crystals;
     }
 }
