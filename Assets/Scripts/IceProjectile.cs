@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class IceProjectile : MonoBehaviour
@@ -8,6 +9,9 @@ public class IceProjectile : MonoBehaviour
     private float slowDuration;
     private float slowRadius;
     private float speed = 18f;
+
+    // Compartida entre explosiones: evita asignar una lista en cada impacto.
+    private static readonly List<EnemyHealth> slowHits = new List<EnemyHealth>(16);
 
     public void SetTarget(GameObject _target, float _damage, float _slowPercent, float _slowDuration, float _slowRadius)
     {
@@ -26,7 +30,7 @@ public class IceProjectile : MonoBehaviour
             return;
         }
 
-        Vector3 direction = target.transform.position - transform.position;
+        Vector3 direction       = target.transform.position - transform.position;
         float distanceThisFrame = speed * Time.deltaTime;
 
         if (direction.magnitude <= distanceThisFrame)
@@ -43,24 +47,25 @@ public class IceProjectile : MonoBehaviour
 
     void Explode()
     {
-        EnemyHealth health = target.GetComponent<EnemyHealth>();
-        if (health != null)
-            health.TakeDamage(damage);
+        EnemyHealth primary = target.GetComponent<EnemyHealth>();
+        if (primary != null)
+            primary.TakeDamage(damage);
 
-        EnemyMovement movement = target.GetComponent<EnemyMovement>();
-        if (movement != null)
-            movement.ApplySlow(slowPercent, slowDuration);
+        EnemyMovement primaryMovement = target.GetComponent<EnemyMovement>();
+        if (primaryMovement != null)
+            primaryMovement.ApplySlow(slowPercent, slowDuration);
 
-        Collider[] colliders = Physics.OverlapSphere(transform.position, slowRadius);
-        foreach (Collider col in colliders)
+        // Antes: Physics.OverlapSphere sin mascara de capas. El registro da
+        // directamente los enemigos dentro del radio.
+        EnemyRegistry.FindInRadius(transform.position, slowRadius, slowHits);
+
+        for (int i = 0; i < slowHits.Count; i++)
         {
-            if (col.gameObject == target) continue;
-            if (col.CompareTag("Enemy"))
-            {
-                EnemyMovement em = col.GetComponent<EnemyMovement>();
-                if (em != null)
-                    em.ApplySlow(slowPercent, slowDuration);
-            }
+            if (slowHits[i] == primary) continue;
+
+            EnemyMovement movement = slowHits[i].GetComponent<EnemyMovement>();
+            if (movement != null)
+                movement.ApplySlow(slowPercent, slowDuration);
         }
 
         Destroy(gameObject);

@@ -19,6 +19,17 @@ public class GameManager : MonoBehaviour
             Instance = this;
         else
             Destroy(gameObject);
+
+        // El Game Over y la victoria dejan timeScale a 0. Si se vuelve a esta
+        // escena por cualquier via que no sea RestartGame (por ejemplo desde el
+        // menu principal), la partida arrancaria congelada.
+        Time.timeScale = 1f;
+    }
+
+    void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
     }
 
     void Start()
@@ -36,7 +47,7 @@ public class GameManager : MonoBehaviour
             UpdateCrystalsUI();
             return true;
         }
-        Debug.Log("No hay suficientes cristales!");
+
         return false;
     }
 
@@ -44,28 +55,34 @@ public class GameManager : MonoBehaviour
     {
         crystals += amount;
         UpdateCrystalsUI();
-        Debug.Log("+" + amount + " cristales. Total: " + crystals);
     }
 
     public void TriggerGameOver()
     {
         if (gameOver || gameWon) return;
+
         gameOver = true;
-        GameUI.Instance.ShowGameOver();
+
+        if (GameUI.Instance != null)
+            GameUI.Instance.ShowGameOver();
+
         Invoke(nameof(PauseGame), 0.1f);
     }
 
     void PauseGame()
     {
-        Time.timeScale = 0f; // pausa el juego
+        Time.timeScale = 0f;
     }
 
     public void TriggerVictory()
     {
         if (gameOver || gameWon) return;
+
         gameWon = true;
-        Time.timeScale = 0f; // pausa el juego
-        GameUI.Instance.ShowVictory();
+        Time.timeScale = 0f;
+
+        if (GameUI.Instance != null)
+            GameUI.Instance.ShowVictory();
     }
 
     public void RestartGame()
@@ -78,6 +95,6 @@ public class GameManager : MonoBehaviour
     void UpdateCrystalsUI()
     {
         if (crystalsText != null)
-            crystalsText.text = "" + crystals;
+            crystalsText.text = crystals.ToString();
     }
 }

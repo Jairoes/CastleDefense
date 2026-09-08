@@ -1,25 +1,19 @@
 using UnityEngine;
 using UnityEngine.AI;
-using System.Collections;
 
+[RequireComponent(typeof(NavMeshAgent))]
 public class EnemyMovement : MonoBehaviour
 {
-    [Header("Configuración")]
+    [Header("Configuracion")]
     public WaypointPath waypointPath;
     public float moveSpeed = 5f;
     public float damage    = 10f;
 
-    [Header("Ataque al castillo")]
-    public float attackRate  = 1f;
-    public float attackRange = 2f;
-
     private NavMeshAgent agent;
-    private int currentWaypointIndex  = 0;
-    private bool isAttackingCastle    = false;
-    private float attackCountdown     = 0f;
+    private int currentWaypointIndex = 0;
+    private bool isAttackingCastle   = false;
     private CastleHealth castle;
     private Animator animator;
-    private SpriteRenderer spriteRenderer;
     private SpriteRotationFix spriteRotFix;
 
     // --- SISTEMA DE SLOW ---
@@ -30,17 +24,16 @@ public class EnemyMovement : MonoBehaviour
     void Start()
     {
         agent        = GetComponent<NavMeshAgent>();
-        castle       = FindFirstObjectByType<CastleHealth>();
+        castle       = CastleHealth.Instance;
         baseSpeed    = moveSpeed;
         animator     = GetComponentInChildren<Animator>();
-        spriteRenderer = GetComponentInChildren<SpriteRenderer>();
-        spriteRotFix = GetComponentInChildren<SpriteRotationFix>(); // ← una sola t
+        spriteRotFix = GetComponentInChildren<SpriteRotationFix>();
 
         agent.speed            = moveSpeed;
         agent.stoppingDistance = 0.5f;
         agent.height           = 1f;
         agent.radius           = 0.15f;
-        agent.updateRotation = false;
+        agent.updateRotation    = false;
 
         GoToNextWaypoint();
     }
@@ -49,7 +42,6 @@ public class EnemyMovement : MonoBehaviour
     {
         if (GameManager.Instance != null && GameManager.Instance.gameOver) return;
 
-        // Tick del slow
         if (isSlowed)
         {
             slowTimer -= Time.deltaTime;
@@ -57,36 +49,34 @@ public class EnemyMovement : MonoBehaviour
                 RemoveSlow();
         }
 
-        if (isAttackingCastle)
-        {
-            if (animator != null)
-                animator.SetBool("isAttacking", true);
-            AttackCastle();
-            return;
-        }
+        // Ya en el castillo: el dano lo disparan los AnimationEvent del clip de
+        // ataque (ver DealDamage), asi que la cadencia la marca la duracion de
+        // la animacion, no un temporizador.
+        if (isAttackingCastle) return;
 
         if (waypointPath == null) return;
 
-        // Actualizar animación según dirección del agente
-        if (agent.velocity.magnitude > 0.1f)
+        if (agent.velocity.sqrMagnitude > 0.01f)
             UpdateAnimation(agent.velocity);
 
-        // Verificar si llegó al waypoint actual
         if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance)
         {
             currentWaypointIndex++;
 
             if (currentWaypointIndex >= waypointPath.GetWaypointCount())
-            {
-                agent.isStopped   = true;
-                isAttackingCastle = true;
-                attackCountdown   = 0f;
-            }
+                StartAttackingCastle();
             else
-            {
                 GoToNextWaypoint();
-            }
         }
+    }
+
+    void StartAttackingCastle()
+    {
+        agent.isStopped   = true;
+        isAttackingCastle = true;
+
+        if (animator != null)
+            animator.SetBool("isAttacking", true);
     }
 
     void UpdateAnimation(Vector3 velocity)
@@ -98,23 +88,17 @@ public class EnemyMovement : MonoBehaviour
         animator.SetFloat("dirX", dir.x);
         animator.SetFloat("dirZ", dir.z);
 
-        // Flip del sprite según dirección X
-        if (spriteRenderer != null)
+        if (spriteRotFix != null)
             spriteRotFix.SetDirection(velocity);
     }
 
     void GoToNextWaypoint()
     {
         if (waypointPath == null) return;
+
         Transform wp = waypointPath.GetWaypoint(currentWaypointIndex);
         if (wp != null)
             agent.SetDestination(wp.position);
-    }
-
-    void AttackCastle()
-    {
-        if (castle == null) return;
-
     }
 
     public void ApplySlow(float slowPercent, float duration)
@@ -125,12 +109,6 @@ public class EnemyMovement : MonoBehaviour
         agent.speed = moveSpeed;
     }
 
-    public void DealDamage()
-    {
-        if (castle != null && isAttackingCastle)
-            castle.TakeDamage(damage);
-    }
-
     void RemoveSlow()
     {
         moveSpeed   = baseSpeed;
@@ -139,9 +117,10 @@ public class EnemyMovement : MonoBehaviour
         agent.speed = moveSpeed;
     }
 
-    void OnDrawGizmosSelected()
+    /// <summary>Lo llaman los AnimationEvent del clip de ataque de cada enemigo.</summary>
+    public void DealDamage()
     {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, attackRange);
+        if (castle != null && isAttackingCastle)
+            castle.TakeDamage(damage);
     }
 }

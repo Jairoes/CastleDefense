@@ -83,8 +83,7 @@ public class WaveManager : MonoBehaviour
         }
 
         // Todas las oleadas grandes terminaron — esperar que mueran todos
-        yield return new WaitUntil(() =>
-            GameObject.FindGameObjectsWithTag("Enemy").Length == 0);
+        yield return new WaitUntil(() => EnemyRegistry.Count == 0);
 
         // Verificar que no haya Game Over antes de dar victoria
         if (GameManager.Instance.gameOver)
@@ -137,9 +136,22 @@ public class WaveManager : MonoBehaviour
     {
         if (prefab == null || waypointPath == null) return;
 
-        Vector3 spawnPos  = waypointPath.GetWaypoint(0).position;
-        spawnPos.y        = 0.5f;
-        GameObject enemy  = Instantiate(prefab, spawnPos, Quaternion.identity);
-        enemy.GetComponent<EnemyMovement>().waypointPath = waypointPath;
+        Transform start = waypointPath.GetWaypoint(0);
+        if (start == null)
+        {
+            Debug.LogError("WaveManager: el WaypointPath no tiene waypoints.", this);
+            return;
+        }
+
+        Vector3 spawnPos = start.position;
+        spawnPos.y       = 0.5f;
+
+        GameObject enemy       = Instantiate(prefab, spawnPos, Quaternion.identity);
+        EnemyMovement movement = enemy.GetComponent<EnemyMovement>();
+
+        if (movement != null)
+            movement.waypointPath = waypointPath;
+        else
+            Debug.LogError("El prefab " + prefab.name + " no tiene EnemyMovement.", enemy);
     }
 }

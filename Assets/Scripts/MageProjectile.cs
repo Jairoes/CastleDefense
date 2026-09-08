@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class MageProjectile : MonoBehaviour
@@ -7,6 +8,9 @@ public class MageProjectile : MonoBehaviour
     private float splashDamage;
     private float splashRadius;
     private float speed = 18f;
+
+    // Compartida entre explosiones: evita asignar una lista en cada impacto.
+    private static readonly List<EnemyHealth> splashHits = new List<EnemyHealth>(16);
 
     public void SetTarget(GameObject _target, float _damage, float _splashDamage, float _splashRadius)
     {
@@ -24,7 +28,7 @@ public class MageProjectile : MonoBehaviour
             return;
         }
 
-        Vector3 direction = target.transform.position - transform.position;
+        Vector3 direction       = target.transform.position - transform.position;
         float distanceThisFrame = speed * Time.deltaTime;
 
         if (direction.magnitude <= distanceThisFrame)
@@ -38,20 +42,19 @@ public class MageProjectile : MonoBehaviour
 
     void Explode()
     {
-        EnemyHealth enemyHealth = target.GetComponent<EnemyHealth>();
-        if (enemyHealth != null)
-            enemyHealth.TakeDamage(damage);
+        EnemyHealth primary = target.GetComponent<EnemyHealth>();
+        if (primary != null)
+            primary.TakeDamage(damage);
 
-        Collider[] colliders = Physics.OverlapSphere(transform.position, splashRadius);
-        foreach (Collider col in colliders)
+        // Antes: Physics.OverlapSphere sin mascara de capas, que devolvia todos
+        // los colliders del radio (terreno, torres, decoracion) para filtrarlos
+        // despues por tag. El registro da directamente los enemigos.
+        EnemyRegistry.FindInRadius(transform.position, splashRadius, splashHits);
+
+        for (int i = 0; i < splashHits.Count; i++)
         {
-            if (col.gameObject == target) continue;
-            if (col.CompareTag("Enemy"))
-            {
-                EnemyHealth eh = col.GetComponent<EnemyHealth>();
-                if (eh != null)
-                    eh.TakeDamage(splashDamage);
-            }
+            if (splashHits[i] == primary) continue;
+            splashHits[i].TakeDamage(splashDamage);
         }
 
         Destroy(gameObject);

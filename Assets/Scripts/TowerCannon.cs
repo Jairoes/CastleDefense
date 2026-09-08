@@ -15,7 +15,6 @@ public class TowerCannon : MonoBehaviour
     private bool firstShot     = true;
     private float noTargetTimer = 0f;
     private float rechargeTime  = 0f;
-    private bool completingCycle = false;
 
     void Start()
     {
@@ -49,21 +48,10 @@ public class TowerCannon : MonoBehaviour
 
     void FindTarget()
     {
-        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
-        float shortestDistance = Mathf.Infinity;
-        GameObject nearestEnemy = null;
-
-        foreach (GameObject enemy in enemies)
-        {
-            float dist = Vector3.Distance(transform.position, enemy.transform.position);
-            if (dist < shortestDistance)
-            {
-                shortestDistance = dist;
-                nearestEnemy = enemy;
-            }
-        }
-
-        target = (nearestEnemy != null && shortestDistance <= range) ? nearestEnemy : null;
+        // Antes esto hacia FindGameObjectsWithTag: un barrido completo de la
+        // escena y un array nuevo, por torre y por frame. El registro ya
+        // mantiene la lista de enemigos vivos.
+        target = EnemyRegistry.FindNearest(transform.position, range);
     }
 
     void UpdateAnimation()

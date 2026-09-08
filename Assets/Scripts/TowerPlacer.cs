@@ -116,7 +116,7 @@ public class TowerPlacer : MonoBehaviour
         if (IsValidPlacement(lastWorldPos))
             PlaceTower(lastWorldPos);
         else
-            StartCoroutine(ShakePrevief());
+            StartCoroutine(ShakePreview());
     }
 
     bool IsPointerOverUI()
@@ -250,9 +250,13 @@ public class TowerPlacer : MonoBehaviour
 
     void SetPreviewColor(GameObject obj, Color color)
     {
-        Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
-        foreach (Renderer r in renderers)
-            r.material.color = color;
+        // Antes: r.material.color, que instancia un material nuevo por renderer
+        // y no se destruye nunca, asi que cada seleccion de torre dejaba
+        // materiales huerfanos. Las torres son SpriteRenderer y su .color es
+        // una propiedad del propio renderer: tintar no cuesta un material.
+        SpriteRenderer[] sprites = obj.GetComponentsInChildren<SpriteRenderer>();
+        foreach (SpriteRenderer sr in sprites)
+            sr.color = color;
     }
 
     void DisableAttackScripts(GameObject preview)
@@ -260,12 +264,15 @@ public class TowerPlacer : MonoBehaviour
         MonoBehaviour[] scripts = preview.GetComponentsInChildren<MonoBehaviour>();
         foreach (MonoBehaviour script in scripts)
         {
-            if (script is not TowerPlacer)
-                script.enabled = false;
+            // SpriteRotationFix tiene que seguir activo o el sprite del preview
+            // no mira a camara y se ve tumbado sobre el suelo.
+            if (script is TowerPlacer || script is SpriteRotationFix) continue;
+
+            script.enabled = false;
         }
     }
 
-    IEnumerator ShakePrevief()
+    IEnumerator ShakePreview()
     {
         if (towerPreview == null) yield break;
 

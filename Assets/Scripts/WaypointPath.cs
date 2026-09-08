@@ -2,12 +2,18 @@ using UnityEngine;
 
 public class WaypointPath : MonoBehaviour
 {
-    [Header("Configuración")]
-    public Color pathColor = Color.yellow;
+    [Header("Configuracion")]
+    public Color pathColor      = Color.yellow;
     public float waypointRadius = 0.5f;
 
+    /// <summary>
+    /// Waypoint por indice, o null si el indice se sale del camino.
+    /// Devolver null en vez de dejar que GetChild lance permite a quien llama
+    /// tratar "he llegado al final" sin excepciones.
+    /// </summary>
     public Transform GetWaypoint(int index)
     {
+        if (index < 0 || index >= transform.childCount) return null;
         return transform.GetChild(index);
     }
 
@@ -22,10 +28,8 @@ public class WaypointPath : MonoBehaviour
 
         for (int i = 0; i < transform.childCount; i++)
         {
-            // Dibuja esfera en cada waypoint
             Gizmos.DrawSphere(transform.GetChild(i).position, waypointRadius);
 
-            // Dibuja línea al siguiente waypoint
             if (i + 1 < transform.childCount)
             {
                 Gizmos.DrawLine(

@@ -50,21 +50,10 @@ public class TowerArcher : MonoBehaviour
 
     void FindTarget()
     {
-        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
-        float shortestDistance = Mathf.Infinity;
-        GameObject nearestEnemy = null;
-
-        foreach (GameObject enemy in enemies)
-        {
-            float distance = Vector3.Distance(transform.position, enemy.transform.position);
-            if (distance < shortestDistance)
-            {
-                shortestDistance = distance;
-                nearestEnemy = enemy;
-            }
-        }
-
-        target = (nearestEnemy != null && shortestDistance <= range) ? nearestEnemy : null;
+        // Antes esto hacia FindGameObjectsWithTag: un barrido completo de la
+        // escena y un array nuevo, por torre y por frame. El registro ya
+        // mantiene la lista de enemigos vivos.
+        target = EnemyRegistry.FindNearest(transform.position, range);
     }
 
     void UpdateAnimation()
