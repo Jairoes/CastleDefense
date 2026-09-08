@@ -33,7 +33,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -28, y: 0.5, z: 12}
-  m_LocalScale: {x: 4, y: 4, z: 4}
+  m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7118423408697334795}
@@ -133,8 +133,6 @@ MonoBehaviour:
   waypointPath: {fileID: 0}
   moveSpeed: 2.5
   damage: 15
-  attackRate: 1
-  attackRange: 2
 --- !u!114 &1168096002659725655
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -163,6 +161,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 589b22fa00b38d14fae8adce5599191a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealthBar
+  offsetY: 2.2
+  width: 2
+  height: 0.28
+  backColor: {r: 0.15, g: 0.04, b: 0.04, a: 1}
+  fillColor: {r: 0.15, g: 0.8, b: 0.15, a: 1}
+  sortingOrder: 100
 --- !u!195 &-7448221365780606327
 NavMeshAgent:
   m_ObjectHideFlags: 0

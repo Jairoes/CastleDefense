@@ -363,8 +363,6 @@ MonoBehaviour:
   waypointPath: {fileID: 0}
   moveSpeed: 5
   damage: 8
-  attackRate: 1
-  attackRange: 2
 --- !u!114 &1168096002659725655
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -393,6 +391,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 589b22fa00b38d14fae8adce5599191a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealthBar
+  offsetY: 2.2
+  width: 2
+  height: 0.28
+  backColor: {r: 0.15, g: 0.04, b: 0.04, a: 1}
+  fillColor: {r: 0.15, g: 0.8, b: 0.15, a: 1}
+  sortingOrder: 100
 --- !u!195 &-8222456635147787099
 NavMeshAgent:
   m_ObjectHideFlags: 0
