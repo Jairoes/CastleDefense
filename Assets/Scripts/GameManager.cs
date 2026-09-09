@@ -34,6 +34,11 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        // Los cristales de inicio los marca el nivel, no el prefab del manager.
+        LevelData level = LevelManager.Instance != null ? LevelManager.Instance.Level : null;
+        if (level != null)
+            crystals = level.startingCrystals;
+
         UpdateCrystalsUI();
     }
 
@@ -80,6 +85,12 @@ public class GameManager : MonoBehaviour
 
         gameWon = true;
         Time.timeScale = 0f;
+
+        // Desbloquea el siguiente nivel antes de mostrar nada: si el jugador
+        // cierra la app en la pantalla de victoria, el progreso ya esta en disco.
+        LevelData level = LevelManager.Instance != null ? LevelManager.Instance.Level : null;
+        if (level != null)
+            SaveSystem.CompleteLevel(level.mapId, level.levelNumber);
 
         if (GameUI.Instance != null)
             GameUI.Instance.ShowVictory();

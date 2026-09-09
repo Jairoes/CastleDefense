@@ -1,63 +1,79 @@
-using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-
-[System.Serializable]
-public class EnemySpawn
-{
-    public GameObject enemyPrefab;
-    public int count;
-}
-
-[System.Serializable]
-public class BigWave
-{
-    public string waveName;
-    public float triggerAtTime;        // segundos desde el inicio para activarse
-    public List<EnemySpawn> enemies;
-    public float timeBetweenEnemies = 0.5f;
-}
+using UnityEngine;
 
 public class WaveManager : MonoBehaviour
 {
-    [Header("Configuración")]
+    [Header("Camino")]
+    [Tooltip("Opcional. Si se deja vacio se busca en la escena de layout una vez " +
+             "esta cargada, que es lo normal con escenas aditivas.")]
     public WaypointPath waypointPath;
 
-    [Header("Flujo continuo")]
-    public List<EnemySpawn> continuousEnemies;
-    public float timeBetweenGroups   = 8f;
-    public int   minPerGroup         = 2;
-    public int   maxPerGroup         = 4;
-    public float timeBetweenEnemies  = 1f;
-    public float continuousSpeedUp   = 0.85f;
-
-    [Header("Oleadas especiales")]
-    public List<BigWave> bigWaves;
-
-    [Header("Estado")]
-    public int  currentWave     = 0;
+    [Header("Estado (solo lectura)")]
+    public int currentWave      = 0;
     public bool isBigWaveActive = false;
 
-    private float gameTimer         = 0f;
-    private int   bigWaveIndex      = 0;
-    private bool  gameFinished      = false;
-    private float currentGroupTimer = 0f;
+    public int TotalBigWaves => level != null ? level.bigWaves.Count : 0;
 
-    void Start()
+    private LevelData level;
+
+    // Copias de trabajo. Los tiempos se aceleran durante la partida y el asset
+    // NO debe tocarse: escribir en un ScriptableObject en el editor persiste en
+    // disco, y el nivel se volveria mas rapido en cada partida hasta romperse.
+    private float groupInterval;
+    private float enemyInterval;
+
+    private float gameTimer         = 0f;
+    private int bigWaveIndex        = 0;
+    private bool gameFinished       = false;
+    private float currentGroupTimer = 0f;
+    private bool running            = false;
+
+    IEnumerator Start()
     {
-        currentGroupTimer = timeBetweenGroups;
+        // El layout (y con el, el camino) puede tardar un frame o varios en
+        // cargarse de forma aditiva.
+        yield return new WaitUntil(() =>
+            LevelManager.Instance == null || LevelManager.Instance.Ready);
+
+        if (LevelManager.Instance == null || LevelManager.Instance.Level == null)
+        {
+            Debug.LogError("WaveManager: no hay nivel que jugar.", this);
+            yield break;
+        }
+
+        level = LevelManager.Instance.Level;
+
+        if (waypointPath == null)
+            waypointPath = FindFirstObjectByType<WaypointPath>();
+
+        if (waypointPath == null)
+        {
+            Debug.LogError("WaveManager: no hay WaypointPath en la escena.", this);
+            yield break;
+        }
+
+        groupInterval     = level.timeBetweenGroups;
+        enemyInterval     = level.timeBetweenEnemies;
+        currentGroupTimer = groupInterval;
+        running           = true;
+
         StartCoroutine(CheckBigWaves());
     }
 
     void Update()
     {
-        if (gameFinished) return;
+        if (!running || gameFinished) return;
         if (GameManager.Instance != null && GameManager.Instance.gameOver) return;
 
         gameTimer         += Time.deltaTime;
         currentGroupTimer += Time.deltaTime;
 
-        if (!isBigWaveActive && bigWaveIndex < bigWaves.Count && currentGroupTimer >= timeBetweenGroups)
+        // El flujo continuo solo rellena entre oleadas grandes: cuando ya no
+        // quedan, deja de generar para que la partida pueda terminar.
+        bool quedanOleadas = bigWaveIndex < level.bigWaves.Count;
+
+        if (!isBigWaveActive && quedanOleadas && currentGroupTimer >= groupInterval)
         {
             currentGroupTimer = 0f;
             StartCoroutine(SpawnContinuousGroup());
@@ -66,69 +82,66 @@ public class WaveManager : MonoBehaviour
 
     IEnumerator CheckBigWaves()
     {
-        while (bigWaveIndex < bigWaves.Count)
+        while (bigWaveIndex < level.bigWaves.Count)
         {
-            BigWave nextWave = bigWaves[bigWaveIndex];
+            WaveDefinition next = level.bigWaves[bigWaveIndex];
 
-            yield return new WaitUntil(() => gameTimer >= nextWave.triggerAtTime);
+            yield return new WaitUntil(() => gameTimer >= next.triggerAtTime);
+            yield return StartCoroutine(LaunchBigWave(next));
 
-            yield return StartCoroutine(LaunchBigWave(nextWave));
             bigWaveIndex++;
 
             if (bigWaveIndex == 1)
             {
-                timeBetweenGroups  *= continuousSpeedUp;
-                timeBetweenEnemies *= continuousSpeedUp;
+                groupInterval *= level.continuousSpeedUp;
+                enemyInterval *= level.continuousSpeedUp;
             }
         }
 
-        // Todas las oleadas grandes terminaron — esperar que mueran todos
         yield return new WaitUntil(() => EnemyRegistry.Count == 0);
 
-        // Verificar que no haya Game Over antes de dar victoria
-        if (GameManager.Instance.gameOver)
-        {
-            gameFinished = true;
-            yield break;
-        }
-
         gameFinished = true;
-        GameManager.Instance.TriggerVictory();
+
+        if (GameManager.Instance != null && !GameManager.Instance.gameOver)
+            GameManager.Instance.TriggerVictory();
     }
 
-    IEnumerator LaunchBigWave(BigWave wave)
+    IEnumerator LaunchBigWave(WaveDefinition wave)
     {
         isBigWaveActive = true;
         currentWave++;
 
-        bool isLastWave = (bigWaveIndex == bigWaves.Count - 1);
+        bool isLastWave = (bigWaveIndex == level.bigWaves.Count - 1);
 
-        Debug.Log("¡OLEADA GRANDE: " + wave.waveName + "!");
-
-        foreach (EnemySpawn spawn in wave.enemies)
+        foreach (WaveGroup group in wave.groups)
         {
-            for (int i = 0; i < spawn.count; i++)
+            int total = level.ScaledCount(group.count);
+
+            for (int i = 0; i < total; i++)
             {
-                SpawnEnemy(spawn.enemyPrefab);
+                SpawnEnemy(group.enemyPrefab);
                 yield return new WaitForSeconds(wave.timeBetweenEnemies);
             }
         }
 
+        // Tras la ultima oleada se deja activo a proposito, para que el flujo
+        // continuo no siga generando y la partida pueda cerrarse en victoria.
         if (!isLastWave)
             isBigWaveActive = false;
     }
 
     IEnumerator SpawnContinuousGroup()
     {
-        if (continuousEnemies.Count == 0) yield break;
+        List<WaveGroup> pool = level.continuousEnemies;
+        if (pool == null || pool.Count == 0) yield break;
 
-        int groupSize = Random.Range(minPerGroup, maxPerGroup + 1);
+        int groupSize = Random.Range(level.minPerGroup, level.maxPerGroup + 1);
 
         for (int i = 0; i < groupSize; i++)
         {
-            EnemySpawn spawn = continuousEnemies[Random.Range(0, continuousEnemies.Count)];
-            SpawnEnemy(spawn.enemyPrefab);
-            yield return new WaitForSeconds(timeBetweenEnemies);
+            WaveGroup pick = pool[Random.Range(0, pool.Count)];
+            SpawnEnemy(pick.enemyPrefab);
+            yield return new WaitForSeconds(enemyInterval);
         }
     }
 
@@ -146,12 +159,23 @@ public class WaveManager : MonoBehaviour
         Vector3 spawnPos = start.position;
         spawnPos.y       = 0.5f;
 
-        GameObject enemy       = Instantiate(prefab, spawnPos, Quaternion.identity);
-        EnemyMovement movement = enemy.GetComponent<EnemyMovement>();
+        GameObject enemy = Instantiate(prefab, spawnPos, Quaternion.identity);
 
+        EnemyMovement movement = enemy.GetComponent<EnemyMovement>();
         if (movement != null)
             movement.waypointPath = waypointPath;
         else
             Debug.LogError("El prefab " + prefab.name + " no tiene EnemyMovement.", enemy);
+
+        // Los multiplicadores se aplican sobre los valores del prefab. Se hace
+        // antes del primer Start del enemigo, que es donde EnemyHealth copia
+        // maxHealth a currentHealth.
+        EnemyHealth health = enemy.GetComponent<EnemyHealth>();
+        if (health != null)
+        {
+            health.maxHealth    *= level.healthMultiplier;
+            health.crystalReward = Mathf.Max(
+                1, Mathf.RoundToInt(health.crystalReward * level.rewardMultiplier));
+        }
     }
 }

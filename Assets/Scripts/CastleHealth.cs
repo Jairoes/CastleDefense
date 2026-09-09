@@ -14,8 +14,12 @@ public class CastleHealth : MonoBehaviour
     public float maxHealth = 100f;
     public float currentHealth;
 
-    [Header("UI")]
-    public RectTransform healthBarFill;
+    /// <summary>
+    /// Vida actual y maxima. La UI vive en la escena compartida y el castillo
+    /// en la de layout, y Unity no serializa referencias entre escenas: por eso
+    /// el castillo avisa y la UI escucha, en vez de guardarse una referencia.
+    /// </summary>
+    public static event System.Action<float, float> HealthChanged;
 
     [Header("Efecto de destruccion")]
     public float shakeDuration  = 0.5f;
@@ -39,6 +43,10 @@ public class CastleHealth : MonoBehaviour
 
     void Start()
     {
+        // El nivel manda sobre el valor del prefab.
+        if (LevelManager.Instance != null && LevelManager.Instance.Level != null)
+            maxHealth = LevelManager.Instance.Level.castleHealth;
+
         currentHealth    = maxHealth;
         originalPosition = transform.position;
         UpdateUI();
@@ -148,10 +156,6 @@ public class CastleHealth : MonoBehaviour
 
     void UpdateUI()
     {
-        if (healthBarFill != null)
-        {
-            float fillAmount = maxHealth > 0f ? currentHealth / maxHealth : 0f;
-            healthBarFill.localScale = new Vector3(fillAmount, 1f, 1f);
-        }
+        HealthChanged?.Invoke(currentHealth, maxHealth);
     }
 }

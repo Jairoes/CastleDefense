@@ -9,6 +9,11 @@ public class GameUI : MonoBehaviour
     [Header("Referencias UI")]
     public TextMeshProUGUI waveText;
 
+    [Tooltip("Relleno de la barra de vida del castillo. Se escala en X. Antes lo " +
+             "referenciaba CastleHealth, pero el castillo vive en la escena de " +
+             "layout y Unity no serializa referencias entre escenas.")]
+    public RectTransform castleHealthFill;
+
     [Header("Panel Game Over")]
     public GameObject gameOverPanel;
 
@@ -23,26 +28,54 @@ public class GameUI : MonoBehaviour
         Instance = this;
     }
 
+    void OnEnable()
+    {
+        CastleHealth.HealthChanged += UpdateCastleHealth;
+
+        // Por si el castillo ya existia antes de activarse esta UI.
+        if (CastleHealth.Instance != null)
+            UpdateCastleHealth(CastleHealth.Instance.currentHealth,
+                               CastleHealth.Instance.maxHealth);
+    }
+
+    void OnDisable()
+    {
+        CastleHealth.HealthChanged -= UpdateCastleHealth;
+    }
+
+    void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+    }
+
     void Start()
     {
         waveManager = FindFirstObjectByType<WaveManager>();
+
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (victoryPanel  != null) victoryPanel.SetActive(false);
 
-        // Mensaje de inicio
         ShowMessage("¡Defiende el castillo!", 3f);
+    }
+
+    void UpdateCastleHealth(float current, float max)
+    {
+        if (castleHealthFill == null) return;
+
+        float fill = max > 0f ? Mathf.Clamp01(current / max) : 0f;
+        castleHealthFill.localScale = new Vector3(fill, 1f, 1f);
     }
 
     void Update()
     {
         if (waveManager == null || waveText == null) return;
 
-        // Detectar cuando cambia la oleada para mostrar mensaje
         if (waveManager.currentWave != lastShownWave && waveManager.currentWave > 0)
         {
             lastShownWave = waveManager.currentWave;
 
-            bool isLastWave = (waveManager.currentWave == waveManager.bigWaves.Count);
+            bool isLastWave = (waveManager.currentWave == waveManager.TotalBigWaves);
 
             if (isLastWave)
                 ShowMessage("¡La oleada final!", 3f);
@@ -85,6 +118,7 @@ public class GameUI : MonoBehaviour
 
     public void OnRestartButton()
     {
-        GameManager.Instance.RestartGame();
+        if (GameManager.Instance != null)
+            GameManager.Instance.RestartGame();
     }
 }
