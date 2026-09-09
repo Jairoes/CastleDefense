@@ -33,12 +33,15 @@ public class TowerArcher : MonoBehaviour
             AnimationClip[] clips = archerAnimator.runtimeAnimatorController.animationClips;
             foreach (AnimationClip clip in clips)
             {
-                if (clip.name == "archer_idle")
+                if (clip.name == "acher_idle")
                 {
                     rechargeTime = clip.length;
                     break;
                 }
             }
+
+            if (rechargeTime <= 0f)
+                Debug.LogWarning("TowerArcher: no encuentro el clip acher_idle en el Animator; rechargeTime se queda a 0 y la torre repetira la animacion en cada frame.", this);
         }
     }
 
@@ -63,7 +66,7 @@ public class TowerArcher : MonoBehaviour
         if (target == null)
         {
             archerAnimator.speed = 0f;
-            archerAnimator.Play("archer_idle", 0, 0f);
+            archerAnimator.Play("acher_idle", 0, 0f);
 
             noTargetTimer += Time.deltaTime;
             if (noTargetTimer >= rechargeTime)
@@ -75,7 +78,7 @@ public class TowerArcher : MonoBehaviour
 
         if (firstShoot)
         {
-            archerAnimator.Play("archer_idle", 0, 0.8f);
+            archerAnimator.Play("acher_idle", 0, 0.8f);
             firstShoot = false;
             noTargetTimer = 0f;
         }

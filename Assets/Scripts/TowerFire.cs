@@ -33,6 +33,9 @@ public class TowerFire : MonoBehaviour
                     break;
                 }
             }
+
+            if (rechargeTime <= 0f)
+                Debug.LogWarning("TowerFire: no encuentro el clip fire_tower_idle en el Animator; rechargeTime se queda a 0 y la torre repetira la animacion en cada frame.", this);
         }
     }
 

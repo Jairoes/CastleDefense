@@ -37,6 +37,9 @@ public class TowerCannon : MonoBehaviour
                     break;
                 }
             }
+
+            if (rechargeTime <= 0f)
+                Debug.LogWarning("TowerCannon: no encuentro el clip cannon_attack en el Animator; rechargeTime se queda a 0 y la torre repetira la animacion en cada frame.", this);
         }
     }
 

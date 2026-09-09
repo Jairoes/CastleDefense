@@ -39,6 +39,9 @@ public class TowerIce : MonoBehaviour
                     break;
                 }
             }
+
+            if (rechargeTime <= 0f)
+                Debug.LogWarning("TowerIce: no encuentro el clip snow_attack en el Animator; rechargeTime se queda a 0 y la torre repetira la animacion en cada frame.", this);
         }
     }
 
