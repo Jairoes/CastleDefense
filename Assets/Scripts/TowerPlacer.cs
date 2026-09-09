@@ -34,10 +34,6 @@ public class TowerPlacer : MonoBehaviour
     private InputAction releaseAction;
     private Vector3 lastWorldPos;
 
-    // El toque llega por callback de InputAction pero se procesa en Update.
-    private bool pendingPress   = false;
-    private bool pendingRelease = false;
-
     void Awake()
     {
         Instance = this;
@@ -69,82 +65,58 @@ public class TowerPlacer : MonoBehaviour
 
     void Update()
     {
-        if (!isPlacing) return;
+        if (!isPlacing || !isDragging) return;
 
-        // El toque se resuelve aquí y no dentro del callback de InputAction:
-        // consultar IsPointerOverGameObject() durante el procesado de eventos
-        // devuelve el estado de la UI del frame ANTERIOR, y Unity lo avisa.
-        if (pendingPress)
-        {
-            pendingPress = false;
-            HandlePress();
-        }
-
-        if (isDragging)
-            FollowPointer();
-
-        if (pendingRelease)
-        {
-            pendingRelease = false;
-            HandleRelease();
-        }
-    }
-
-    void FollowPointer()
-    {
         if (IsPointerOverUI())
         {
             if (towerPreview != null && !isShaking)
-                towerPreview.transform.position = new Vector3(0f, -100f, 0f);
+                towerPreview.transform.position = new Vector3(0, -100f, 0);
             return;
         }
 
         Vector3 worldPos = GetPointerWorldPosition();
-        worldPos.y   = 2f;
-        lastWorldPos = worldPos;
+        worldPos.y = 2f;
+        lastWorldPos = worldPos; // ← guardar última posición
 
         if (towerPreview != null && !isShaking)
             towerPreview.transform.position = worldPos;
     }
 
-    void HandlePress()
+    void OnTouchStart(InputAction.CallbackContext context)
     {
-        if (isDragging) return;          // ya viene arrastrando desde el botón
-        if (IsPointerOverUI()) return;   // el toque empezó sobre la UI
+        if (!isPlacing) return;
+        if (isDragging) return; // ya está arrastrando desde el botón
 
-        // Toque en el mapa (modo tap): a partir de aquí sigue al dedo.
+        // Si el toque empezó sobre la UI, no hacer nada aquí
+        if (IsPointerOverUI()) return;
+
+        // Toque en el mapa (modo tap) → empezar a seguir el dedo
         isDragging = true;
 
         Vector3 worldPos = GetPointerWorldPosition();
-        worldPos.y   = 2f;
-        lastWorldPos = worldPos;         // por si se suelta en este mismo frame
-
+        worldPos.y = 2f;
         if (towerPreview != null)
             towerPreview.transform.position = worldPos;
     }
 
-    void HandleRelease()
+    void OnTouchEnd(InputAction.CallbackContext context)
     {
+        if (!isPlacing) return;
         if (!isDragging) return;
-
+    
+        if (IsPointerOverUI())
+        {
+            isDragging = false;
+            return;
+        }
+    
         isDragging = false;
-
-        if (IsPointerOverUI()) return;
-
+    
+        // Usar la última posición guardada durante el arrastre
         if (IsValidPlacement(lastWorldPos))
             PlaceTower(lastWorldPos);
         else
             StartCoroutine(ShakePreview());
-    }
-
-    void OnTouchStart(InputAction.CallbackContext context)
-    {
-        if (isPlacing) pendingPress = true;
-    }
-
-    void OnTouchEnd(InputAction.CallbackContext context)
-    {
-        if (isPlacing) pendingRelease = true;
     }
 
     bool IsPointerOverUI()
