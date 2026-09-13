@@ -1,38 +1,37 @@
 using UnityEngine;
 
 /// <summary>
-/// Mantiene constante la densidad de textura de una pieza, la estires como la
-/// estires.
+/// Da a todas las piezas la misma densidad de textura, tengan el tamano que
+/// tengan.
 ///
-/// El problema: las UV de un Plane van de 0 a 1 sobre toda su superficie, asi
-/// que al escalarlo de forma desigual la textura se aplasta. Y el tiling es una
-/// propiedad del material, no del objeto, asi que tocarlo afecta a todas las
-/// piezas que comparten ese material.
+/// El problema: las UV de un Plane van de 0 a 1 sobre toda su superficie, y el
+/// tiling vive en el material, no en el objeto. Con un unico material compartido
+/// por piezas de tamanos muy distintos, la textura sale estirada en las largas y
+/// comprimida en las cortas.
 ///
-/// La solucion: tomar como referencia el tiling que ya tiene el material,
-/// multiplicarlo por el tamano real de la pieza y aplicar el resultado con un
-/// MaterialPropertyBlock, que sobrescribe el valor solo en este renderer sin
-/// instanciar un material nuevo.
-///
-/// Por eso una pieza sin escalar se ve identica a como se ve hoy: no hay nada
-/// que configurar.
+/// La solucion: en vez de un numero de repeticiones fijo, se define cuantas
+/// unidades de mundo ocupa UNA repeticion. Cada pieza calcula entonces las
+/// repeticiones que le tocan segun su tamano real, y todas acaban con el mismo
+/// tamano de texel. Se aplica con un MaterialPropertyBlock, que sobrescribe el
+/// valor solo en este renderer sin instanciar un material nuevo.
 ///
 /// OJO: ponlo solo en piezas cuya textura se REPITE (tramos rectos, cesped).
 /// En una esquina o un borde, la textura es un dibujo unico pensado para cubrir
-/// la pieza entera, y ahi lo que quieres es justamente que se estire con ella.
+/// la pieza entera, y ahi lo que quieres es que se estire con ella.
 /// </summary>
 [ExecuteAlways]
 [RequireComponent(typeof(MeshRenderer))]
 [RequireComponent(typeof(MeshFilter))]
 public class PathTiling : MonoBehaviour
 {
-    [Tooltip("Multiplicador extra sobre el tiling del material. Dejalo en 1,1 " +
-             "para conservar la densidad actual. Subelo para que el patron se " +
-             "repita mas veces, bajalo para verlo mas grande.")]
-    public Vector2 textureScale = Vector2.one;
+    [Tooltip("Unidades de mundo que ocupa una repeticion de la textura. " +
+             "Tu camino mide 3 unidades de ancho, asi que con 3 la textura " +
+             "entra justa a lo ancho. Sube el numero para ver la textura mas " +
+             "grande, bajalo para que se repita mas veces. Manten los dos ejes " +
+             "iguales si no quieres que los pixeles salgan deformados.")]
+    public Vector2 worldUnitsPerTile = new Vector2(3f, 3f);
 
     // Shader.PropertyToID evita resolver la cadena en cada aplicacion.
-    private static readonly int BaseMapID = Shader.PropertyToID("_BaseMap");
     private static readonly int BaseMapST = Shader.PropertyToID("_BaseMap_ST");
     private static readonly int MainTexST = Shader.PropertyToID("_MainTex_ST");
 
@@ -41,7 +40,7 @@ public class PathTiling : MonoBehaviour
     private MaterialPropertyBlock props;
 
     private Vector3 lastScale;
-    private Vector2 lastTextureScale;
+    private Vector2 lastUnitsPerTile;
 
     void OnEnable()
     {
@@ -61,7 +60,7 @@ public class PathTiling : MonoBehaviour
         // en ejecucion, asi que basta con el OnEnable.
         if (Application.isPlaying) return;
 
-        if (transform.lossyScale != lastScale || textureScale != lastTextureScale)
+        if (transform.lossyScale != lastScale || worldUnitsPerTile != lastUnitsPerTile)
             Apply();
     }
 #endif
@@ -81,34 +80,28 @@ public class PathTiling : MonoBehaviour
         Vector3 meshSize = meshFilter.sharedMesh.bounds.size;
         Vector3 scale    = transform.lossyScale;
 
-        float sizeU = meshSize.x * scale.x;
+        float sizeU = Mathf.Abs(meshSize.x * scale.x);
 
         // Plane: plano en XZ, la V corre por Z. Quad: plano en XY, corre por Y.
         float sizeV = Mathf.Approximately(meshSize.z, 0f)
-            ? meshSize.y * scale.y
-            : meshSize.z * scale.z;
+            ? Mathf.Abs(meshSize.y * scale.y)
+            : Mathf.Abs(meshSize.z * scale.z);
 
-        // El tiling del material es la referencia de densidad: con la pieza sin
-        // escalar el factor vale 1 y el resultado es el del material tal cual.
-        Vector2 baseTiling = Vector2.one;
-        Material mat = meshRenderer.sharedMaterial;
-        if (mat != null && mat.HasProperty(BaseMapID))
-            baseTiling = mat.GetTextureScale(BaseMapID);
+        float unitsU = Mathf.Max(0.0001f, worldUnitsPerTile.x);
+        float unitsV = Mathf.Max(0.0001f, worldUnitsPerTile.y);
 
-        // El Plane de Unity mide 10x10 unidades sin escalar.
-        float tileU = baseTiling.x * (sizeU / 10f) * textureScale.x;
-        float tileV = baseTiling.y * (sizeV / 10f) * textureScale.y;
+        // Repeticiones = cuanto mide la pieza entre lo que mide una repeticion.
+        Vector4 st = new Vector4(sizeU / unitsU, sizeV / unitsV, 0f, 0f);
 
         if (props == null) props = new MaterialPropertyBlock();
         meshRenderer.GetPropertyBlock(props);
 
-        Vector4 st = new Vector4(tileU, tileV, 0f, 0f);
         props.SetVector(BaseMapST, st);   // URP Lit / Unlit
         props.SetVector(MainTexST, st);   // shaders antiguos, por si acaso
 
         meshRenderer.SetPropertyBlock(props);
 
         lastScale        = scale;
-        lastTextureScale = textureScale;
+        lastUnitsPerTile = worldUnitsPerTile;
     }
 }
