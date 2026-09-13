@@ -38,6 +38,20 @@ public class TowerPlacer : MonoBehaviour
     private readonly float[] cooldownEnd = new float[TowerCount];
     private int selectedIndex = -1;
 
+    [Header("Radio de ataque al colocar")]
+    [Tooltip("Opcional: tu propio dibujo de circulo. Vacio = se genera uno.")]
+    public Sprite rangeSprite;
+    public Color rangeValidColor   = new Color(1f, 1f, 1f, 0.9f);
+    public Color rangeInvalidColor = new Color(1f, 0.25f, 0.25f, 0.9f);
+
+    [Tooltip("Altura del circulo. Justo por encima del camino (y 0.02) para que " +
+             "no parpadee al coincidir con el suelo.")]
+    public float rangeHeight = 0.06f;
+
+    private GameObject rangeIndicator;
+    private SpriteRenderer rangeRenderer;
+    private float selectedRange;
+
     private GameObject selectedTowerPrefab;
     private GameObject towerPreview;
     private int selectedCost = 0;
@@ -275,6 +289,8 @@ public class TowerPlacer : MonoBehaviour
         towerPreview = Instantiate(prefab, new Vector3(0, -100f, 0), Quaternion.identity);
         DisableAttackScripts(towerPreview);
         SetPreviewColor(towerPreview, previewColor);
+
+        selectedRange = GetTowerRange(prefab);
     }
 
     void PlaceTower(Vector3 position)
@@ -301,6 +317,139 @@ public class TowerPlacer : MonoBehaviour
     {
         if (GameUI.Instance != null)
             GameUI.Instance.ShowToast(message);
+    }
+
+    // ---------------------------------------------------------------------
+    // Radio de ataque mientras se coloca
+    // ---------------------------------------------------------------------
+
+    // Va en LateUpdate a proposito: Update ya ha movido el preview siguiendo el
+    // dedo, y aqui solo se lee donde quedo. El manejo de toques no se toca.
+    void LateUpdate()
+    {
+        UpdateRangeIndicator();
+    }
+
+    void UpdateRangeIndicator()
+    {
+        // El preview se aparca en y = -100 cuando el dedo esta sobre la UI o
+        // antes de empezar a arrastrar: ahi no hay nada que mostrar.
+        bool visible = isPlacing
+                    && towerPreview != null
+                    && selectedRange > 0f
+                    && towerPreview.transform.position.y > -50f;
+
+        if (!visible)
+        {
+            if (rangeIndicator != null && rangeIndicator.activeSelf)
+                rangeIndicator.SetActive(false);
+            return;
+        }
+
+        EnsureRangeIndicator();
+
+        Vector3 p = towerPreview.transform.position;
+        rangeIndicator.transform.position = new Vector3(p.x, rangeHeight, p.z);
+
+        // El sprite puede venir de fuera con cualquier tamano: se escala segun
+        // lo que mide de verdad para que el diametro sea exactamente 2 * range.
+        float spriteWidth = rangeRenderer.sprite.bounds.size.x;
+        float scale = (selectedRange * 2f) / Mathf.Max(0.0001f, spriteWidth);
+        rangeIndicator.transform.localScale = new Vector3(scale, scale, 1f);
+
+        // Rojo si ahi no se puede construir: el jugador lo sabe antes de soltar.
+        rangeRenderer.color = IsValidPlacement(p) ? rangeValidColor : rangeInvalidColor;
+
+        if (!rangeIndicator.activeSelf)
+            rangeIndicator.SetActive(true);
+    }
+
+    void EnsureRangeIndicator()
+    {
+        if (rangeIndicator != null) return;
+
+        // Objeto aparte y no hijo del preview: asi SetPreviewColor no le cambia
+        // el color y no se destruye y recrea con cada torre.
+        rangeIndicator = new GameObject("RangeIndicator");
+        rangeIndicator.transform.rotation = Quaternion.Euler(90f, 0f, 0f);   // tumbado en el suelo
+
+        rangeRenderer = rangeIndicator.AddComponent<SpriteRenderer>();
+        rangeRenderer.sprite       = rangeSprite != null ? rangeSprite : CreateRangeSprite();
+        rangeRenderer.sortingOrder = -10;   // por debajo de torres y enemigos
+
+        rangeIndicator.SetActive(false);
+    }
+
+    /// <summary>
+    /// Las torres no comparten clase base todavia, asi que se pregunta a cada
+    /// tipo. El componente esta desactivado en el preview, pero GetComponent lo
+    /// encuentra igual y su campo range sigue siendo el del prefab.
+    /// </summary>
+    static float GetTowerRange(GameObject tower)
+    {
+        if (tower == null) return 0f;
+
+        TowerArcher archer = tower.GetComponentInChildren<TowerArcher>(true);
+        if (archer != null) return archer.range;
+
+        TowerMage mage = tower.GetComponentInChildren<TowerMage>(true);
+        if (mage != null) return mage.range;
+
+        TowerIce ice = tower.GetComponentInChildren<TowerIce>(true);
+        if (ice != null) return ice.range;
+
+        TowerCannon cannon = tower.GetComponentInChildren<TowerCannon>(true);
+        if (cannon != null) return cannon.range;
+
+        TowerFire fire = tower.GetComponentInChildren<TowerFire>(true);
+        if (fire != null) return fire.range;
+
+        return 0f;
+    }
+
+    /// <summary>Circulo relleno translucido con un borde mas marcado.</summary>
+    static Sprite CreateRangeSprite()
+    {
+        const int size = 256;
+        const float fillAlpha = 0.16f;
+        const float ringAlpha = 0.85f;
+        const float ringWidth = 5f;      // en pixeles de la textura
+
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        tex.wrapMode   = TextureWrapMode.Clamp;
+        tex.filterMode = FilterMode.Bilinear;   // circulo liso aunque se escale mucho
+
+        float radius = size * 0.5f - 1f;
+        Vector2 center = new Vector2(size * 0.5f, size * 0.5f);
+        Color[] pixels = new Color[size * size];
+
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float d = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), center);
+
+                float alpha;
+                if (d > radius)                  alpha = 0f;
+                else if (d > radius - ringWidth) alpha = ringAlpha;
+                else                             alpha = fillAlpha;
+
+                // Suavizado de 1.5 px en el borde exterior.
+                alpha *= Mathf.Clamp01((radius - d) / 1.5f + 0.5f);
+
+                pixels[y * size + x] = new Color(1f, 1f, 1f, alpha);
+            }
+        }
+
+        tex.SetPixels(pixels);
+        tex.Apply();
+        tex.hideFlags = HideFlags.HideAndDontSave;
+
+        // Pixels per unit = tamano: el sprite mide 1 unidad y la escala es el diametro.
+        Sprite sprite = Sprite.Create(tex, new Rect(0f, 0f, size, size),
+                                      new Vector2(0.5f, 0.5f), size);
+        sprite.hideFlags = HideFlags.HideAndDontSave;
+        return sprite;
     }
 
     public void CancelPlacement()
