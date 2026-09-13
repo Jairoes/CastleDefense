@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Catalog_forest
   m_EditorClassIdentifier: Assembly-CSharp::LevelCatalog
   mapId: forest
-  sceneName: Forest_Level_01
+  sceneName: Forest_Gameplay
   levels:
   - {fileID: 11400000, guid: 141294f128f3d98459a6270ce4ea24d6, type: 2}
   - {fileID: 11400000, guid: 9417e8cea08ed32459c843c1ba931650, type: 2}

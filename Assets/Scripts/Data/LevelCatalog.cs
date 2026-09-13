@@ -12,7 +12,7 @@ public class LevelCatalog : ScriptableObject
     public string mapId = "forest";
 
     [Tooltip("Escena de juego de este mapa.")]
-    public string sceneName = "Forest_Level_01";
+    public string sceneName = "Forest_Gameplay";
 
     [Tooltip("Ordenados del 1 al 10.")]
     public List<LevelData> levels = new List<LevelData>();
