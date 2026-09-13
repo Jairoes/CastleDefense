@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 public class MainMenu : MonoBehaviour
 {
     [Tooltip("Escena de juego a cargar desde el menu.")]
-    public string gameSceneName = "Forest_Level_01";
+    public string gameSceneName = "Forest_Gameplay";
 
     public void PlayGame()
     {
