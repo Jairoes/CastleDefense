@@ -21,6 +21,23 @@ public class TowerPlacer : MonoBehaviour
     public int cannonCost = 90;
     public int fireCost   = 80;
 
+    [Header("Recarga tras colocar (segundos)")]
+    [Tooltip("Como en PvZ: al colocar una torre, su boton queda bloqueado este " +
+             "tiempo. Cuanto mejor la torre, mas larga la espera.")]
+    public float archerCooldown = 4f;
+    public float mageCooldown   = 10f;
+    public float iceCooldown    = 8f;
+    public float cannonCooldown = 14f;
+    public float fireCooldown   = 10f;
+
+    public const int TowerCount = 5;
+
+    // Momento (en Time.time) en que cada torre vuelve a estar disponible.
+    // Time.time se congela con timeScale = 0, asi que la recarga se pausa sola
+    // en Game Over o victoria.
+    private readonly float[] cooldownEnd = new float[TowerCount];
+    private int selectedIndex = -1;
+
     private GameObject selectedTowerPrefab;
     private GameObject towerPreview;
     private int selectedCost = 0;
@@ -171,25 +188,79 @@ public class TowerPlacer : MonoBehaviour
         return true;
     }
 
-    public void SelectTower(int towerIndex)
-    {
-        int cost          = 0;
-        GameObject prefab = null;
+    // ---- Consultas por indice (las usan los botones de la UI) ----
 
+    public GameObject GetPrefab(int towerIndex)
+    {
         switch (towerIndex)
         {
-            case 0: prefab = archerTowerPrefab; cost = archerCost; break;
-            case 1: prefab = mageTowerPrefab;   cost = mageCost;   break;
-            case 2: prefab = iceTowerPrefab;    cost = iceCost;    break;
-            case 3: prefab = cannonTowerPrefab; cost = cannonCost; break;
-            case 4: prefab = fireTowerPrefab;   cost = fireCost;   break;
+            case 0: return archerTowerPrefab;
+            case 1: return mageTowerPrefab;
+            case 2: return iceTowerPrefab;
+            case 3: return cannonTowerPrefab;
+            case 4: return fireTowerPrefab;
+            default: return null;
         }
+    }
+
+    public int GetCost(int towerIndex)
+    {
+        switch (towerIndex)
+        {
+            case 0: return archerCost;
+            case 1: return mageCost;
+            case 2: return iceCost;
+            case 3: return cannonCost;
+            case 4: return fireCost;
+            default: return 0;
+        }
+    }
+
+    public float GetCooldownDuration(int towerIndex)
+    {
+        switch (towerIndex)
+        {
+            case 0: return archerCooldown;
+            case 1: return mageCooldown;
+            case 2: return iceCooldown;
+            case 3: return cannonCooldown;
+            case 4: return fireCooldown;
+            default: return 0f;
+        }
+    }
+
+    public float GetCooldownRemaining(int towerIndex)
+    {
+        if (towerIndex < 0 || towerIndex >= TowerCount) return 0f;
+        return Mathf.Max(0f, cooldownEnd[towerIndex] - Time.time);
+    }
+
+    /// <summary>1 recien colocada, 0 lista para usar.</summary>
+    public float GetCooldownFraction(int towerIndex)
+    {
+        float duration = GetCooldownDuration(towerIndex);
+        if (duration <= 0f) return 0f;
+        return Mathf.Clamp01(GetCooldownRemaining(towerIndex) / duration);
+    }
+
+    public void SelectTower(int towerIndex)
+    {
+        GameObject prefab = GetPrefab(towerIndex);
+        int cost          = GetCost(towerIndex);
 
         if (prefab == null) return;
 
-        if (GameManager.Instance.crystals < cost)
+        float remaining = GetCooldownRemaining(towerIndex);
+        if (remaining > 0f)
         {
-            Debug.Log("No hay suficientes cristales!");
+            ShowToast("Recargando... " + Mathf.CeilToInt(remaining) + "s");
+            return;
+        }
+
+        int faltan = cost - GameManager.Instance.crystals;
+        if (faltan > 0)
+        {
+            ShowToast("Cristales insuficientes (faltan " + faltan + ")");
             return;
         }
 
@@ -197,6 +268,7 @@ public class TowerPlacer : MonoBehaviour
 
         selectedTowerPrefab = prefab;
         selectedCost        = cost;
+        selectedIndex       = towerIndex;
         isPlacing           = true;
         isDragging          = true; // permite arrastre inmediato desde el botón
 
@@ -213,10 +285,22 @@ public class TowerPlacer : MonoBehaviour
             position.y = 2f;
             GameObject newTower = Instantiate(selectedTowerPrefab, position, Quaternion.identity);
             newTower.layer = LayerMask.NameToLayer("Obstacle");
+
+            // La recarga empieza al COLOCAR, no al seleccionar: si el jugador
+            // cancela o no encuentra sitio valido, no pierde el turno.
+            if (selectedIndex >= 0 && selectedIndex < TowerCount)
+                cooldownEnd[selectedIndex] = Time.time + GetCooldownDuration(selectedIndex);
+
             isPlacing    = false;
             isDragging   = false;
             towerPreview = null;
         }
+    }
+
+    void ShowToast(string message)
+    {
+        if (GameUI.Instance != null)
+            GameUI.Instance.ShowToast(message);
     }
 
     public void CancelPlacement()
