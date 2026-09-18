@@ -8,6 +8,16 @@ public class TowerMage : MonoBehaviour
     public float splashDamage = 10f;
     public float splashRadius = 3f;
 
+    [Header("Aspecto del hechizo")]
+    [Tooltip("Verde veneno de la onda en el suelo y del humo.")]
+    public Color poisonColor  = new Color(0.20f, 0.55f, 0.15f, 1f);
+
+    [Tooltip("Color de los destellos que saltan en el impacto.")]
+    public Color sparkleColor = new Color(0.75f, 1f, 0.35f, 1f);
+
+    [Tooltip("Tamano del humo y los destellos. 1 = normal, 1.5 = mas grande.")]
+    public float effectScale  = 1f;
+
     [Header("Proyectil")]
     public GameObject projectilePrefab;
     public Transform shootPoint;
@@ -118,7 +128,8 @@ public class TowerMage : MonoBehaviour
         MageProjectile mp = proj.GetComponent<MageProjectile>();
 
         if (mp != null)
-            mp.SetTarget(target, damage, splashDamage, splashRadius);
+            mp.SetTarget(target, damage, splashDamage, splashRadius,
+                         poisonColor, sparkleColor, effectScale);
     }
 
     void OnDrawGizmosSelected()

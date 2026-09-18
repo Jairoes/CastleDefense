@@ -1,14 +1,15 @@
 using UnityEngine;
 
 /// <summary>
-/// Onda de escarcha en el suelo cuando impacta el proyectil de hielo.
+/// Onda en el suelo que marca el area de efecto de un impacto: escarcha celeste
+/// para el hielo, veneno verde para el mago.
 ///
-/// Se expande hasta el radio EXACTO de la ralentizacion y se desvanece, para que
-/// el jugador vea que enemigos han quedado dentro. Primero crece rapido (la
-/// mitad del tiempo) y despues se queda quieta a tamano completo mientras se
-/// apaga: asi el borde final, que es el que importa, se llega a leer.
+/// Se expande hasta el radio EXACTO del efecto y se desvanece, para que el
+/// jugador vea que enemigos han quedado dentro. Primero crece rapido (la mitad
+/// del tiempo) y despues se queda quieta a tamano completo mientras se apaga:
+/// asi el borde final, que es el que importa, se llega a leer.
 /// </summary>
-public class FrostBurstEffect : MonoBehaviour
+public class AreaBurstEffect : MonoBehaviour
 {
     const float Duration   = 0.5f;
     const float GrowPart   = 0.5f;    // fraccion del tiempo que dura el crecimiento
@@ -24,7 +25,7 @@ public class FrostBurstEffect : MonoBehaviour
     {
         if (radius <= 0f) return;
 
-        GameObject go = new GameObject("FrostBurst");
+        GameObject go = new GameObject("AreaBurst");
         go.transform.SetPositionAndRotation(
             new Vector3(impact.x, GroundY, impact.z),
             Quaternion.Euler(90f, 0f, 0f));                  // tumbada en el suelo
@@ -33,7 +34,7 @@ public class FrostBurstEffect : MonoBehaviour
         renderer.sprite       = RuntimeSprites.Circle;
         renderer.sortingOrder = -9;                          // bajo torres y enemigos
 
-        FrostBurstEffect fx = go.AddComponent<FrostBurstEffect>();
+        AreaBurstEffect fx = go.AddComponent<AreaBurstEffect>();
         fx.sr        = renderer;
         fx.baseColor = color;
         fx.diameter  = radius * 2f;   // el sprite mide 1 unidad

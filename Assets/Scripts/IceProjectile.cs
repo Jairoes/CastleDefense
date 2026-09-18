@@ -60,7 +60,7 @@ public class IceProjectile : MonoBehaviour
 
         // La onda se dibuja con el mismo radio con el que se buscan enemigos
         // justo debajo: lo que el jugador ve es exactamente lo que se ralentiza.
-        FrostBurstEffect.Spawn(transform.position, slowRadius, frostColor);
+        AreaBurstEffect.Spawn(transform.position, slowRadius, frostColor);
 
         // Antes: Physics.OverlapSphere sin mascara de capas. El registro da
         // directamente los enemigos dentro del radio.

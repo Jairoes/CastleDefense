@@ -162,6 +162,14 @@ public class EnemyMovement : MonoBehaviour
             bodyRenderer.color = bodyBaseColor;
     }
 
+    /// <summary>
+    /// Centro visual del enemigo, para colocar efectos sobre el cuerpo. La raiz
+    /// del prefab queda a los pies y cada enemigo tiene escala distinta, asi que
+    /// se usa el centro real del sprite.
+    /// </summary>
+    public Vector3 BodyCenter =>
+        bodyRenderer != null ? bodyRenderer.bounds.center : transform.position;
+
     /// <summary>Lo llaman los AnimationEvent del clip de ataque de cada enemigo.</summary>
     public void DealDamage()
     {
