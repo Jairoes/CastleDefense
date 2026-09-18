@@ -170,6 +170,14 @@ public class EnemyMovement : MonoBehaviour
     public Vector3 BodyCenter =>
         bodyRenderer != null ? bodyRenderer.bounds.center : transform.position;
 
+    /// <summary>
+    /// Tamano visual del enemigo en el mundo. Sirve para que sus efectos (la mancha
+    /// al morir, por ejemplo) escalen solos con el personaje: el orco es mas
+    /// grande que el esqueleto y deja una mancha mayor.
+    /// </summary>
+    public Vector3 BodySize =>
+        bodyRenderer != null ? bodyRenderer.bounds.size : Vector3.one;
+
     /// <summary>Lo llaman los AnimationEvent del clip de ataque de cada enemigo.</summary>
     public void DealDamage()
     {

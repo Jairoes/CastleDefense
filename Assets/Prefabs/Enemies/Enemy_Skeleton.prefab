@@ -379,6 +379,10 @@ MonoBehaviour:
   currentHealth: 0
   crystalReward: 4
   healthBar: {fileID: 8307293971908432858}
+  remainsType: 1
+  remainsColor: {r: 0.9, g: 0.88, b: 0.76, a: 1}
+  remainsScale: 0.9
+  remainsSprites: []
 --- !u!114 &8307293971908432858
 MonoBehaviour:
   m_ObjectHideFlags: 0

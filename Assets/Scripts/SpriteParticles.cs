@@ -28,6 +28,7 @@ public class SpriteParticles : MonoBehaviour
         public float speedMin, speedMax; // velocidad hacia fuera
         public float riseMin, riseMax;   // velocidad hacia arriba
         public float drag;               // frenado: mayor = se paran antes
+        public float gravity;            // tira hacia abajo (gotas); 0 = flotan
 
         public float lifeMin, lifeMax;
         public float sizeStart, sizeEnd;
@@ -40,7 +41,7 @@ public class SpriteParticles : MonoBehaviour
     {
         public SpriteRenderer renderer;
         public Vector3 velocity;
-        public float age, life, drag;
+        public float age, life, drag, gravity;
         public float sizeStart, sizeEnd;
         public Color color;
     }
@@ -115,6 +116,7 @@ public class SpriteParticles : MonoBehaviour
                 age       = 0f,
                 life      = Mathf.Max(0.05f, Random.Range(s.lifeMin, s.lifeMax)),
                 drag      = s.drag,
+                gravity   = s.gravity,
                 sizeStart = s.sizeStart,
                 sizeEnd   = s.sizeEnd,
                 color     = Color.Lerp(s.colorA, s.colorB, Random.value),
@@ -147,7 +149,8 @@ public class SpriteParticles : MonoBehaviour
                 continue;
             }
 
-            p.velocity *= Mathf.Max(0f, 1f - p.drag * dt);
+            p.velocity   *= Mathf.Max(0f, 1f - p.drag * dt);
+            p.velocity.y -= p.gravity * dt;
             p.renderer.transform.position += p.velocity * dt;
 
             Apply(ref p);
