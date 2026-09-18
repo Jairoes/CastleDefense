@@ -9,6 +9,11 @@ public class TowerIce : MonoBehaviour
     public float slowDuration = 2f;
     public float slowRadius   = 2.5f;
 
+    [Header("Aspecto del hielo")]
+    [Tooltip("Color de la onda al impactar y tinte de los enemigos mientras estan " +
+             "ralentizados. Un solo valor para que los dos efectos casen.")]
+    public Color frostColor = new Color(0.55f, 0.85f, 1f, 1f);
+
     [Header("Proyectil")]
     public GameObject projectilePrefab;
     public Transform shootPoint;
@@ -119,7 +124,7 @@ public class TowerIce : MonoBehaviour
         IceProjectile ip = proj.GetComponent<IceProjectile>();
 
         if (ip != null)
-            ip.SetTarget(target, damage, slowPercent, slowDuration, slowRadius);
+            ip.SetTarget(target, damage, slowPercent, slowDuration, slowRadius, frostColor);
     }
 
     void OnDrawGizmosSelected()

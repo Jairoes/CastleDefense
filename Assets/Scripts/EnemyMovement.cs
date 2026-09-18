@@ -21,6 +21,10 @@ public class EnemyMovement : MonoBehaviour
     private bool isSlowed   = false;
     private float slowTimer = 0f;
 
+    // Sprite del cuerpo y su color original, para el tinte de congelado.
+    private SpriteRenderer bodyRenderer;
+    private Color bodyBaseColor = Color.white;
+
     void Start()
     {
         agent        = GetComponent<NavMeshAgent>();
@@ -28,6 +32,14 @@ public class EnemyMovement : MonoBehaviour
         baseSpeed    = moveSpeed;
         animator     = GetComponentInChildren<Animator>();
         spriteRotFix = GetComponentInChildren<SpriteRotationFix>();
+
+        // El cuerpo es el sprite que lleva SpriteRotationFix. No vale
+        // GetComponentInChildren<SpriteRenderer>(): la barra de vida tambien
+        // crea SpriteRenderer hijos y podria tintarse ella en lugar del enemigo.
+        if (spriteRotFix != null)
+            bodyRenderer = spriteRotFix.GetComponent<SpriteRenderer>();
+        if (bodyRenderer != null)
+            bodyBaseColor = bodyRenderer.color;
 
         agent.speed            = moveSpeed;
         agent.stoppingDistance = 0.5f;
@@ -112,6 +124,16 @@ public class EnemyMovement : MonoBehaviour
     /// </summary>
     public void ApplySlow(float slowPercent, float duration)
     {
+        ApplySlow(slowPercent, duration, Color.white);   // sin tinte
+    }
+
+    public void ApplySlow(float slowPercent, float duration, Color tint)
+    {
+        // Tinte multiplicativo sobre el color original del sprite: con blanco no
+        // cambia nada, con celeste los tonos claros viran a azul helado.
+        if (bodyRenderer != null)
+            bodyRenderer.color = bodyBaseColor * tint;
+
         moveSpeed   = baseSpeed * (1f - slowPercent);
         slowTimer   = duration;
         isSlowed    = true;
@@ -135,6 +157,9 @@ public class EnemyMovement : MonoBehaviour
 
         if (animator != null)
             animator.speed = 1f;
+
+        if (bodyRenderer != null)
+            bodyRenderer.color = bodyBaseColor;
     }
 
     /// <summary>Lo llaman los AnimationEvent del clip de ataque de cada enemigo.</summary>

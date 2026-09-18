@@ -8,18 +8,21 @@ public class IceProjectile : MonoBehaviour
     private float slowPercent;
     private float slowDuration;
     private float slowRadius;
+    private Color frostColor = Color.white;
     private float speed = 18f;
 
     // Compartida entre explosiones: evita asignar una lista en cada impacto.
     private static readonly List<EnemyHealth> slowHits = new List<EnemyHealth>(16);
 
-    public void SetTarget(GameObject _target, float _damage, float _slowPercent, float _slowDuration, float _slowRadius)
+    public void SetTarget(GameObject _target, float _damage, float _slowPercent,
+                          float _slowDuration, float _slowRadius, Color _frostColor)
     {
         target       = _target;
         damage       = _damage;
         slowPercent  = _slowPercent;
         slowDuration = _slowDuration;
         slowRadius   = _slowRadius;
+        frostColor   = _frostColor;
     }
 
     void Update()
@@ -53,7 +56,11 @@ public class IceProjectile : MonoBehaviour
 
         EnemyMovement primaryMovement = target.GetComponent<EnemyMovement>();
         if (primaryMovement != null)
-            primaryMovement.ApplySlow(slowPercent, slowDuration);
+            primaryMovement.ApplySlow(slowPercent, slowDuration, frostColor);
+
+        // La onda se dibuja con el mismo radio con el que se buscan enemigos
+        // justo debajo: lo que el jugador ve es exactamente lo que se ralentiza.
+        FrostBurstEffect.Spawn(transform.position, slowRadius, frostColor);
 
         // Antes: Physics.OverlapSphere sin mascara de capas. El registro da
         // directamente los enemigos dentro del radio.
@@ -65,7 +72,7 @@ public class IceProjectile : MonoBehaviour
 
             EnemyMovement movement = slowHits[i].GetComponent<EnemyMovement>();
             if (movement != null)
-                movement.ApplySlow(slowPercent, slowDuration);
+                movement.ApplySlow(slowPercent, slowDuration, frostColor);
         }
 
         Destroy(gameObject);
