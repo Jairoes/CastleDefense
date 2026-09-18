@@ -101,12 +101,29 @@ public class EnemyMovement : MonoBehaviour
             agent.SetDestination(wp.position);
     }
 
+    /// <summary>
+    /// Ralentiza al enemigo: se mueve mas lento y tambien ataca mas lento.
+    ///
+    /// Lo segundo sale gratis por como esta montado el ataque: el dano al
+    /// castillo lo disparan los AnimationEvent del clip, asi que frenar el
+    /// Animator alarga el tiempo entre golpes en la misma proporcion. De paso,
+    /// la animacion de andar deja de ir a velocidad normal mientras el enemigo
+    /// avanza despacio, que era lo que hacia parecer que patinaba.
+    /// </summary>
     public void ApplySlow(float slowPercent, float duration)
     {
         moveSpeed   = baseSpeed * (1f - slowPercent);
         slowTimer   = duration;
         isSlowed    = true;
         agent.speed = moveSpeed;
+
+        if (animator != null)
+        {
+            // Nunca 0: con el Animator parado no llegaria ningun AnimationEvent
+            // y el enemigo se quedaria congelado para siempre delante del
+            // castillo sin llegar a golpear.
+            animator.speed = Mathf.Max(0.05f, 1f - slowPercent);
+        }
     }
 
     void RemoveSlow()
@@ -115,6 +132,9 @@ public class EnemyMovement : MonoBehaviour
         isSlowed    = false;
         slowTimer   = 0f;
         agent.speed = moveSpeed;
+
+        if (animator != null)
+            animator.speed = 1f;
     }
 
     /// <summary>Lo llaman los AnimationEvent del clip de ataque de cada enemigo.</summary>
