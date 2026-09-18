@@ -374,7 +374,7 @@ public class TowerPlacer : MonoBehaviour
         rangeIndicator.transform.rotation = Quaternion.Euler(90f, 0f, 0f);   // tumbado en el suelo
 
         rangeRenderer = rangeIndicator.AddComponent<SpriteRenderer>();
-        rangeRenderer.sprite       = rangeSprite != null ? rangeSprite : CreateRangeSprite();
+        rangeRenderer.sprite       = rangeSprite != null ? rangeSprite : RuntimeSprites.Circle;
         rangeRenderer.sortingOrder = -10;   // por debajo de torres y enemigos
 
         rangeIndicator.SetActive(false);
@@ -405,51 +405,6 @@ public class TowerPlacer : MonoBehaviour
         if (fire != null) return fire.range;
 
         return 0f;
-    }
-
-    /// <summary>Circulo relleno translucido con un borde mas marcado.</summary>
-    static Sprite CreateRangeSprite()
-    {
-        const int size = 256;
-        const float fillAlpha = 0.16f;
-        const float ringAlpha = 0.85f;
-        const float ringWidth = 5f;      // en pixeles de la textura
-
-        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
-        tex.wrapMode   = TextureWrapMode.Clamp;
-        tex.filterMode = FilterMode.Bilinear;   // circulo liso aunque se escale mucho
-
-        float radius = size * 0.5f - 1f;
-        Vector2 center = new Vector2(size * 0.5f, size * 0.5f);
-        Color[] pixels = new Color[size * size];
-
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++)
-            {
-                float d = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), center);
-
-                float alpha;
-                if (d > radius)                  alpha = 0f;
-                else if (d > radius - ringWidth) alpha = ringAlpha;
-                else                             alpha = fillAlpha;
-
-                // Suavizado de 1.5 px en el borde exterior.
-                alpha *= Mathf.Clamp01((radius - d) / 1.5f + 0.5f);
-
-                pixels[y * size + x] = new Color(1f, 1f, 1f, alpha);
-            }
-        }
-
-        tex.SetPixels(pixels);
-        tex.Apply();
-        tex.hideFlags = HideFlags.HideAndDontSave;
-
-        // Pixels per unit = tamano: el sprite mide 1 unidad y la escala es el diametro.
-        Sprite sprite = Sprite.Create(tex, new Rect(0f, 0f, size, size),
-                                      new Vector2(0.5f, 0.5f), size);
-        sprite.hideFlags = HideFlags.HideAndDontSave;
-        return sprite;
     }
 
     public void CancelPlacement()
