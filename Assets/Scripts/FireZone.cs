@@ -2,17 +2,19 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Suelo en llamas que deja el proyectil de fuego: quema cada cierto tiempo a
-/// todos los enemigos que esten dentro mientras dura.
+/// Suelo en llamas que deja el proyectil de fuego. Mientras arde, quema de forma
+/// CONTINUA a todo enemigo que este dentro: cada frame le quita un poco de vida,
+/// asi que la barra baja de forma suave y cuanto mas tiempo se quede dentro,
+/// mas dano recibe.
 ///
 /// Da a la torre de fuego un papel que ninguna otra tiene: dano en una zona a lo
 /// largo del tiempo. Rinde en esquinas y en la entrada del castillo, donde los
 /// enemigos se amontonan, y combina con el hielo: un enemigo ralentizado pasa el
 /// doble de tiempo dentro de las llamas.
 ///
-/// Las zonas NO se suman sobre un mismo enemigo (ver EnemyHealth.TryBurnTick):
-/// si la torre dispara cada segundo, habria varias zonas solapadas en el mismo
-/// sitio y el dano se multiplicaria sin control.
+/// Las zonas NO se suman sobre un mismo enemigo (ver EnemyHealth.TryBurn): si la
+/// torre dispara cada segundo, habria varias zonas solapadas en el mismo sitio y
+/// el dano se multiplicaria sin control.
 /// </summary>
 public class FireZone : MonoBehaviour
 {
@@ -20,8 +22,7 @@ public class FireZone : MonoBehaviour
     {
         public float radius;
         public float duration;
-        public float tickInterval;
-        public float damagePerTick;
+        public float damagePerSecond;
 
         public Color fireColor;
         public Color emberColor;
@@ -32,23 +33,22 @@ public class FireZone : MonoBehaviour
     const float FadeIn        = 0.15f;
     const float FadeOut       = 0.5f;
     const float FlameInterval = 0.12f;    // cada cuanto brotan llamas nuevas
+    const float SparkInterval = 0.3f;     // chispas sobre cada enemigo que arde
 
     private Settings s;
     private Vector3 center;
     private float age;
-    private float tickTimer;
     private float flameTimer;
     private SpriteRenderer patch;
 
-    // Compartida entre zonas: evita asignar una lista en cada golpe de fuego.
+    // Compartida entre zonas: evita asignar una lista en cada frame.
     private static readonly List<EnemyHealth> hits = new List<EnemyHealth>(16);
 
     public static void Spawn(Vector3 impact, Settings settings)
     {
         if (settings.radius <= 0f || settings.duration <= 0f) return;
 
-        settings.tickInterval = Mathf.Max(0.1f, settings.tickInterval);
-        settings.effectScale  = Mathf.Max(0.1f, settings.effectScale);
+        settings.effectScale = Mathf.Max(0.1f, settings.effectScale);
 
         GameObject go = new GameObject("FireZone");
         go.transform.SetPositionAndRotation(
@@ -66,8 +66,6 @@ public class FireZone : MonoBehaviour
         float diameter = settings.radius * 2f;               // el sprite mide 1 unidad
         go.transform.localScale = new Vector3(diameter, diameter, 1f);
 
-        // Primer golpe a mitad de intervalo: rapido pero sin pisar el impacto.
-        zone.tickTimer = settings.tickInterval * 0.5f;
         zone.UpdatePatch();
 
         // La onda del impacto, igual que hielo y mago: marca el area al instante.
@@ -85,12 +83,7 @@ public class FireZone : MonoBehaviour
             return;
         }
 
-        tickTimer -= dt;
-        if (tickTimer <= 0f)
-        {
-            tickTimer += s.tickInterval;
-            Burn();
-        }
+        Burn(dt);
 
         flameTimer -= dt;
         if (flameTimer <= 0f)
@@ -102,21 +95,29 @@ public class FireZone : MonoBehaviour
         UpdatePatch();
     }
 
-    void Burn()
+    /// <summary>
+    /// Quema de forma continua: cada frame, dano por segundo x tiempo del frame.
+    /// Asi el dano total no depende de los FPS del movil: a 30 o a 60 fps, un
+    /// segundo dentro de las llamas quita lo mismo.
+    /// </summary>
+    void Burn(float dt)
     {
+        if (dt <= 0f) return;   // juego en pausa
+
         EnemyRegistry.FindInRadius(center, s.radius, hits);
+        float damage = s.damagePerSecond * dt;
 
         for (int i = 0; i < hits.Count; i++)
         {
             EnemyHealth enemy = hits[i];
 
-            // Si otra zona ya le quemo en este intervalo, esta no suma.
-            if (!enemy.TryBurnTick(s.tickInterval)) continue;
+            // Las chispas van a su propio ritmo, no cada frame: con el dano
+            // continuo serian decenas por segundo por enemigo.
+            if (enemy.TryBurnFx(SparkInterval))
+                EmberPuff(enemy);
 
-            // Las chispas van antes del dano: si lo mata, Destroy se aplica al
-            // final del frame y el cuerpo aun esta donde tiene que estar.
-            EmberPuff(enemy);
-            enemy.TakeDamage(s.damagePerTick);
+            // Si otra zona ya le quemo en este frame, esta no suma.
+            enemy.TryBurn(damage);
         }
     }
 

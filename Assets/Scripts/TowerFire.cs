@@ -11,15 +11,12 @@ public class TowerFire : MonoBehaviour
     public float zoneRadius        = 2f;
 
     [Tooltip("Segundos que arde el suelo.")]
-    public float zoneDuration      = 2f;
+    public float zoneDuration        = 2f;
 
-    [Tooltip("Cada cuanto quema a los enemigos que estan dentro.")]
-    public float zoneTickInterval  = 0.5f;
-
-    [Tooltip("Dano de cada golpe de fuego. Las zonas solapadas no se suman sobre " +
-             "el mismo enemigo, asi que el maximo por enemigo es " +
-             "(duracion / intervalo) golpes.")]
-    public float zoneDamagePerTick = 6f;
+    [Tooltip("Vida que pierde por segundo un enemigo que este dentro. Se aplica " +
+             "poco a poco, cada frame. Las zonas solapadas no se suman, asi que " +
+             "el maximo por enemigo es este valor x la duracion.")]
+    public float zoneDamagePerSecond = 12f;
 
     [Header("Aspecto del fuego")]
     public Color fireColor   = new Color(1f, 0.45f, 0.1f, 1f);   // naranja: suelo y llamas
@@ -117,10 +114,9 @@ public class TowerFire : MonoBehaviour
         if (fp != null)
             fp.SetTarget(target, damage, new FireZone.Settings
             {
-                radius        = zoneRadius,
-                duration      = zoneDuration,
-                tickInterval  = zoneTickInterval,
-                damagePerTick = zoneDamagePerTick,
+                radius          = zoneRadius,
+                duration        = zoneDuration,
+                damagePerSecond = zoneDamagePerSecond,
                 fireColor     = fireColor,
                 emberColor    = emberColor,
                 effectScale   = effectScale,
