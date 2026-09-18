@@ -5,8 +5,28 @@ public class TowerFire : MonoBehaviour
     [Header("Configuración")]
     public float range      = 6f;
     public float damage     = 25f;
-    public float burnDamage = 10f;
-    public float burnDelay  = 1f;
+
+    [Header("Suelo en llamas")]
+    [Tooltip("Radio de la zona que arde donde cae el proyectil.")]
+    public float zoneRadius        = 2f;
+
+    [Tooltip("Segundos que arde el suelo.")]
+    public float zoneDuration      = 2f;
+
+    [Tooltip("Cada cuanto quema a los enemigos que estan dentro.")]
+    public float zoneTickInterval  = 0.5f;
+
+    [Tooltip("Dano de cada golpe de fuego. Las zonas solapadas no se suman sobre " +
+             "el mismo enemigo, asi que el maximo por enemigo es " +
+             "(duracion / intervalo) golpes.")]
+    public float zoneDamagePerTick = 6f;
+
+    [Header("Aspecto del fuego")]
+    public Color fireColor   = new Color(1f, 0.45f, 0.1f, 1f);   // naranja: suelo y llamas
+    public Color emberColor  = new Color(1f, 0.85f, 0.3f, 1f);   // amarillo: brasas
+
+    [Tooltip("Tamano de las llamas y las brasas. 1 = normal.")]
+    public float effectScale = 1f;
 
     [Header("Proyectil")]
     public GameObject projectilePrefab;
@@ -95,7 +115,16 @@ public class TowerFire : MonoBehaviour
         FireProjectile fp = proj.GetComponent<FireProjectile>();
 
         if (fp != null)
-            fp.SetTarget(target, damage, burnDamage, burnDelay);
+            fp.SetTarget(target, damage, new FireZone.Settings
+            {
+                radius        = zoneRadius,
+                duration      = zoneDuration,
+                tickInterval  = zoneTickInterval,
+                damagePerTick = zoneDamagePerTick,
+                fireColor     = fireColor,
+                emberColor    = emberColor,
+                effectScale   = effectScale,
+            });
         else
             Debug.LogWarning("FireProjectile component no encontrado!");
     }

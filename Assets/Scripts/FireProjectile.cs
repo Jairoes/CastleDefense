@@ -4,16 +4,14 @@ public class FireProjectile : MonoBehaviour
 {
     private GameObject target;
     private float damage;
-    private float burnDamage;
-    private float burnDelay;
+    private FireZone.Settings zone;
     private float speed = 18f;
 
-    public void SetTarget(GameObject _target, float _damage, float _burnDamage, float _burnDelay)
+    public void SetTarget(GameObject _target, float _damage, FireZone.Settings _zone)
     {
-        target     = _target;
-        damage     = _damage;
-        burnDamage = _burnDamage;
-        burnDelay  = _burnDelay;
+        target = _target;
+        damage = _damage;
+        zone   = _zone;
     }
 
     void Update()
@@ -41,12 +39,15 @@ public class FireProjectile : MonoBehaviour
 
     void HitTarget()
     {
+        Vector3 impact = transform.position;
+
+        // Golpe directo al objetivo, como siempre.
         EnemyHealth health = target.GetComponent<EnemyHealth>();
         if (health != null)
-        {
             health.TakeDamage(damage);
-            health.ApplyBurn(burnDamage, burnDelay);
-        }
+
+        // Y deja el suelo ardiendo donde cayo.
+        FireZone.Spawn(impact, zone);
 
         Destroy(gameObject);
     }

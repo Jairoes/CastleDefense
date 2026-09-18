@@ -12,8 +12,10 @@ public class EnemyHealth : MonoBehaviour
     [Header("Barra de vida")]
     public EnemyHealthBar healthBar;
 
-    private bool isBurning         = false;
-    private float pendingBurnDamage = 0f;
+    // Momento a partir del cual puede volver a recibir dano de fuego. Lo comparten
+    // todas las zonas en llamas: aunque se solapen varias, el enemigo recibe como
+    // mucho un golpe de fuego por intervalo.
+    private float nextBurnTime = 0f;
 
     void OnEnable()
     {
@@ -49,19 +51,21 @@ public class EnemyHealth : MonoBehaviour
             Die();
     }
 
-    public void ApplyBurn(float burnDamage, float delay)
+    /// <summary>
+    /// Pregunta si este enemigo puede recibir ahora un golpe de fuego. Si puede,
+    /// lo reserva y devuelve true; si ya le quemo otra zona hace poco, false.
+    ///
+    /// El bloqueo dura el 90 % del intervalo y no el 100 %: el temporizador de
+    /// cada zona acumula pequenos errores de coma flotante, y si su golpe cayera
+    /// una milesima antes de liberarse el bloqueo, se saltaria un intervalo
+    /// entero y el fuego quemaria a la mitad de ritmo.
+    /// </summary>
+    public bool TryBurnTick(float interval)
     {
-        if (isBurning) return;
+        if (Time.time < nextBurnTime) return false;
 
-        isBurning         = true;
-        pendingBurnDamage = burnDamage;
-        Invoke(nameof(BurnTick), delay);
-    }
-
-    void BurnTick()
-    {
-        isBurning = false;
-        TakeDamage(pendingBurnDamage);
+        nextBurnTime = Time.time + interval * 0.9f;
+        return true;
     }
 
     void Die()
